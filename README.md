@@ -1,18 +1,39 @@
-# CRM de WhatsApp WinoWin
+# WhatsApp CRM
 
-Proyecto de practicas orientado a construir un CRM de WhatsApp para gestion comercial y seguimiento de conversaciones.
+MVP de CRM para gestion de contactos y conversaciones de WhatsApp.
+
+## Descripcion
+
+Este proyecto explora una solucion ligera para centralizar conversaciones, contactos y seguimiento comercial en una sola interfaz.
+
+Actualmente incluye una base funcional para:
+
+- registrar contactos
+- abrir conversaciones asociadas a cada cliente
+- visualizar mensajes entrantes y salientes
+- simular mensajes para pruebas locales
 
 ## Estado actual
 
-- Backend y base de datos funcionales para pruebas locales
-- Interfaz minima para contactos y conversaciones
-- Flujo validado con datos ficticios
+El proyecto se encuentra en fase MVP.
 
-## Estructura
+- Backend funcional con API y base de datos local
+- Frontend minimo para validacion de flujo
+- Pruebas realizadas con datos ficticios
 
-- `backend/`: API y logica principal
+## Stack
+
+- FastAPI
+- SQLModel
+- SQLite
+- React
+- Vite
+
+## Estructura del proyecto
+
+- `backend/`: API, modelos y logica principal
 - `frontend/`: interfaz web del CRM
-- `TECHNICAL_DESIGN.md`: diseno tecnico del proyecto
+- `TECHNICAL_DESIGN.md`: documentacion tecnica del proyecto
 
 ## Ejecucion local
 
@@ -30,3 +51,7 @@ Frontend:
 cd "/Users/otanewi/Desktop/Prácticas WinoWin/Proyectos/crm-whatsapp-winowin/frontend"
 npm run dev
 ```
+
+## Objetivo
+
+Construir una base de CRM de WhatsApp util para gestion comercial, con un enfoque rapido, funcional y de bajo coste.
