@@ -1,0 +1,264 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #eef6f1;
+  color: #183225;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.App {
+  min-height: 100vh;
+}
+
+.App-header {
+  padding: 28px 40px;
+  background: linear-gradient(135deg, #0f5132, #208454);
+  color: white;
+  box-shadow: 0 12px 30px rgba(15, 81, 50, 0.18);
+}
+
+.App-header h1 {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 46px);
+  letter-spacing: -0.04em;
+}
+
+.App-main {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) 1fr;
+  gap: 24px;
+  width: min(1180px, calc(100% - 32px));
+  margin: 28px auto;
+}
+
+.contact-list,
+.conversation-view {
+  border: 1px solid rgba(32, 132, 84, 0.16);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 18px 50px rgba(21, 75, 50, 0.08);
+}
+
+.contact-list {
+  padding: 20px;
+}
+
+.contact-list h2,
+.conversation-view h2 {
+  margin: 0 0 18px;
+  color: #0f5132;
+}
+
+.contact-form {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.contact-form input,
+.contact-form select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #cfe4d7;
+  border-radius: 14px;
+  background: white;
+  outline: none;
+}
+
+.contact-form input:focus,
+.contact-form select:focus {
+  border-color: #208454;
+  box-shadow: 0 0 0 4px rgba(32, 132, 84, 0.12);
+}
+
+.contact-form button {
+  cursor: pointer;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 14px;
+  background: #208454;
+  color: white;
+  font-weight: 700;
+}
+
+.contact-form button:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
+
+.contact-form-error {
+  margin: -6px 0 14px;
+  color: #b42318;
+  font-size: 13px;
+}
+
+.contact-list ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contact-list li {
+  cursor: pointer;
+  padding: 14px 16px;
+  border: 1px solid #d8eadf;
+  border-radius: 16px;
+  background: #f8fcf9;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.contact-list li:hover,
+.contact-list li.selected {
+  transform: translateY(-1px);
+  border-color: #2d9b62;
+  background: #e8f7ee;
+}
+
+.contact-list small {
+  color: #5f7d6b;
+}
+
+.conversation-view {
+  display: flex;
+  min-height: 560px;
+  padding: 24px;
+  flex-direction: column;
+}
+
+.contact-info {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #edf8f1;
+  color: #234834;
+}
+
+.conversation-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.selected-contact-name {
+  margin-top: 4px;
+  color: #5d7568;
+  font-size: 14px;
+}
+
+.refresh-btn {
+  cursor: pointer;
+  padding: 10px 14px;
+  border: 1px solid #cfe4d7;
+  border-radius: 999px;
+  background: white;
+  color: #0f5132;
+  font-weight: 700;
+}
+
+.empty-state,
+.empty-messages {
+  color: #6a8172;
+}
+
+.messages {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  overflow: auto;
+  padding: 8px 4px 18px;
+}
+
+.msg {
+  max-width: 70%;
+  padding: 12px 14px;
+  border-radius: 18px;
+}
+
+.msg.incoming {
+  align-self: flex-start;
+  background: #f1f4f2;
+}
+
+.msg.outgoing {
+  align-self: flex-end;
+  background: #d8f3df;
+}
+
+.msg-content {
+  line-height: 1.45;
+}
+
+.msg-meta {
+  margin-top: 6px;
+  color: #6b7f73;
+  font-size: 12px;
+}
+
+.msg-form {
+  display: flex;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #dcece2;
+}
+
+.msg-input {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid #cfe4d7;
+  border-radius: 999px;
+  outline: none;
+}
+
+.msg-input:focus {
+  border-color: #208454;
+  box-shadow: 0 0 0 4px rgba(32, 132, 84, 0.12);
+}
+
+.msg-btn {
+  cursor: pointer;
+  padding: 14px 20px;
+  border: 0;
+  border-radius: 999px;
+  background: #0f5132;
+  color: white;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .App-header {
+    padding: 24px;
+  }
+
+  .App-main {
+    grid-template-columns: 1fr;
+  }
+
+  .conversation-view {
+    min-height: 460px;
+  }
+
+  .conversation-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .msg {
+    max-width: 90%;
+  }
+}
