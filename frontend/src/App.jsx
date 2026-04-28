@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ContactList from './components/ContactList';
 import ConversationView from './components/ConversationView';
 import './App.css';
+import winowinLogo from './assets/winowin-logo.svg';
 
 function App() {
   const [contacts, setContacts] = useState([]);
@@ -111,7 +112,10 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>CRM de WhatsApp</h1>
+        <div className="App-headerContent">
+          <h1>CRM de WhatsApp</h1>
+          <img className="App-headerLogo" src={winowinLogo} alt="Logo de WinoWin" />
+        </div>
       </header>
       <div className="App-main">
         <ContactList

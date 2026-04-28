@@ -62,7 +62,7 @@ const ContactList = ({ contacts, onContactSelect, onCreateContact, selectedId, e
           >
             {contact.name} ({contact.whatsapp_number})
             <br />
-            <small>{contact.lead_status}</small>
+            <small className={`status-badge status-${contact.lead_status}`}>{contact.lead_status}</small>
           </li>
         ))}
       </ul>
