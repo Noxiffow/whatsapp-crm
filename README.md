@@ -1,43 +1,70 @@
 # WhatsApp CRM
 
-MVP de CRM para gestion de contactos y conversaciones de WhatsApp.
+MVP de CRM para gestión de contactos y conversaciones de WhatsApp.
 
-## Descripcion
+## Descripción
 
-Este proyecto explora una solucion ligera para centralizar conversaciones, contactos y seguimiento comercial en una sola interfaz.
+Este proyecto explora una solución ligera para centralizar conversaciones, contactos y seguimiento comercial en una sola interfaz.
 
-Actualmente incluye una base funcional para:
+Actualmente permite:
 
-- registrar contactos
-- abrir conversaciones asociadas a cada cliente
-- visualizar mensajes entrantes y salientes
-- simular mensajes para pruebas locales
+- crear contactos desde la interfaz
+- abrir o generar conversaciones asociadas a cada cliente
+- registrar mensajes entrantes y salientes
+- simular mensajes para pruebas funcionales
+- validar el flujo principal del CRM con datos ficticios
 
 ## Estado actual
 
-El proyecto se encuentra en fase MVP.
+El proyecto se encuentra en fase MVP, con la validación funcional del flujo principal ya migrada a Supabase.
 
-- Backend funcional con API y base de datos local
-- Frontend minimo para validacion de flujo
-- Pruebas realizadas con datos ficticios
+Estado real a 28 de abril de 2026:
+
+- contactos, conversaciones y mensajes funcionando en Supabase
+- frontend mínimo operativo para testing
+- validación básica del formato del teléfono aplicada en interfaz y en base de datos
+- backend local de FastAPI conservado como base heredada de validación inicial, pero ya no es el flujo principal de pruebas
+- trabajo visual del frontend en paralelo con Galya
 
 ## Stack
+
+### Stack actual de trabajo
+
+- React + Vite
+- Supabase
+- GitHub
+
+### Stack heredado o de apoyo
 
 - FastAPI
 - SQLModel
 - SQLite
-- React
-- Vite
+
+### Stack final previsto
+
+- React + Vite
+- Tailwind CSS
+- Cloudflare Pages / Workers
+- Supabase Free
 
 ## Estructura del proyecto
 
-- `backend/`: API, modelos y logica principal
+- `backend/`: API y base local heredada del MVP inicial
 - `frontend/`: interfaz web del CRM
-- `TECHNICAL_DESIGN.md`: documentacion tecnica del proyecto
+- `supabase/migrations/`: migraciones SQL versionadas para la base de datos final
+- `TECHNICAL_DESIGN.md`: documentación técnica del proyecto
 
-## Ejecucion local
+## Ejecución local
 
-Backend:
+Frontend:
+
+```bash
+cd "/Users/otanewi/Desktop/Prácticas WinoWin/Proyectos/crm-whatsapp-winowin/frontend"
+npm install
+npm run dev
+```
+
+Si se necesita levantar también la base local heredada:
 
 ```bash
 cd "/Users/otanewi/Desktop/Prácticas WinoWin/Proyectos/crm-whatsapp-winowin"
@@ -45,13 +72,6 @@ source backend/.venv_codex/bin/activate
 python -m backend.app.main
 ```
 
-Frontend:
-
-```bash
-cd "/Users/otanewi/Desktop/Prácticas WinoWin/Proyectos/crm-whatsapp-winowin/frontend"
-npm run dev
-```
-
 ## Objetivo
 
-Construir una base de CRM de WhatsApp util para gestion comercial, con un enfoque rapido, funcional y de bajo coste.
+Construir una base de CRM de WhatsApp útil para gestión comercial, con un enfoque rápido, funcional y de bajo coste, manteniendo el desarrollo apoyado en herramientas gratuitas.
