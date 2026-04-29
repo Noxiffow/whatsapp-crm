@@ -18,11 +18,12 @@ Actualmente permite:
 
 El proyecto se encuentra en fase MVP, con la validación funcional del flujo principal ya migrada a Supabase.
 
-Estado real a 28 de abril de 2026:
+Estado real a 29 de abril de 2026:
 
 - contactos, conversaciones y mensajes funcionando en Supabase
 - frontend mínimo operativo para testing
 - validación básica del formato del teléfono aplicada en interfaz y en base de datos
+- borrado de contactos movido a una función RPC segura de Supabase para evitar eliminación directa desde frontend
 - backend local de FastAPI conservado como base heredada de validación inicial, pero ya no es el flujo principal de pruebas
 - trabajo visual del frontend en paralelo con Galya
 
@@ -71,6 +72,18 @@ cd "/Users/otanewi/Desktop/Prácticas WinoWin/Proyectos/crm-whatsapp-winowin"
 source backend/.venv_codex/bin/activate
 python -m backend.app.main
 ```
+
+## Seguridad y capa intermedia actual
+
+Durante la fase de pruebas, el frontend sigue consultando y registrando datos en Supabase con la clave pública del proyecto.
+
+Para empezar a endurecer la seguridad, las operaciones sensibles ya no se dejan abiertas de forma directa:
+
+- el borrado de contactos ya no se hace con `delete` directo sobre la tabla
+- ahora pasa por una función RPC de Supabase (`delete_contact_cascade`)
+- las migraciones asociadas están versionadas en `supabase/migrations/`
+
+Esto permite mantener la agilidad del MVP sin dejar toda la lógica crítica expuesta únicamente al cliente web.
 
 ## Objetivo
 

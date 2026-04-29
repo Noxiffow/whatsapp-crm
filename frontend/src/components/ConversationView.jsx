@@ -7,6 +7,7 @@ const ConversationView = ({
   onMessageChange,
   onSendMessage,
   onRefresh,
+  onDeleteContact,
   onSimulateIncoming,
   simulateMessage,
   onSimulateMessageChange,
@@ -34,6 +35,14 @@ const ConversationView = ({
         <button type="button" className="refresh-btn" onClick={onRefresh} disabled={isRefreshing}>
           {isRefreshing ? 'Actualizando...' : 'Refrescar'}
         </button>
+        <div className="conversation-actions">
+          <button type="button" className="refresh-btn" onClick={onRefresh}>
+            Refrescar
+          </button>
+          <button type="button" className="delete-btn" onClick={onDeleteContact}>
+            Eliminar contacto
+          </button>
+        </div>
       </div>
       <div className="testing-guide">
         <strong>Flujo de prueba:</strong> 1. Selecciona un contacto. 2. Simula un mensaje entrante. 3. Responde desde el CRM.

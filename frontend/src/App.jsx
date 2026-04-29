@@ -141,6 +141,32 @@ function App() {
     setIsRefreshing(false);
   };
 
+  const handleDeleteSelectedContact = async () => {
+    if (!selectedContact) {
+      setActionError('No hay ningún contacto seleccionado para eliminar.');
+      return;
+    }
+
+    setActionError('');
+    setActionInfo('');
+
+    const { error } = await supabase.rpc('delete_contact_cascade', {
+      p_contact_id: selectedContact.id,
+    });
+
+    if (error) {
+      setActionError('No se pudo eliminar el contacto desde la capa segura de Supabase.');
+      return;
+    }
+
+    setSelectedContactId(null);
+    setConversation(null);
+    setMessages([]);
+    setNewMessage('');
+    setActionInfo('Contacto eliminado correctamente.');
+    await fetchContacts();
+  };
+
   const fetchConversation = async (contactId) => {
     setActionError('');
     const { data, error } = await supabase
@@ -380,6 +406,7 @@ function App() {
           onMessageChange={(e) => setNewMessage(e.target.value)}
           onSendMessage={handleSendMessage}
           onRefresh={handleRefreshCurrentView}
+          onDeleteContact={handleDeleteSelectedContact}
           onSimulateIncoming={handleSimulateIncoming}
           simulateMessage={simulateMessage}
           onSimulateMessageChange={(e) => setSimulateMessage(e.target.value)}
