@@ -9,6 +9,7 @@ const ConversationView = ({
   onRefresh,
   selectedContact,
   selectedContactId,
+  isRefreshing,
 }) => {
   if (!selectedContactId) {
     return <p>Selecciona un contacto para ver la conversación.</p>
@@ -25,8 +26,8 @@ const ConversationView = ({
             </p>
           ) : null}
         </div>
-        <button type="button" className="refresh-btn" onClick={onRefresh}>
-          Refrescar
+        <button type="button" className="refresh-btn" onClick={onRefresh} disabled={isRefreshing}>
+          {isRefreshing ? 'Actualizando...' : 'Refrescar'}
         </button>
       </div>
       {conversation ? (
