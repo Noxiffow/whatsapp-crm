@@ -134,7 +134,10 @@ button {
   background: #1ebe5d;
 }
 
-.contact-form button:disabled {
+.contact-form button:disabled,
+.msg-btn:disabled,
+.delete-contact-btn:disabled,
+.refresh-btn:disabled {
   cursor: wait;
   opacity: 0.75;
 }
@@ -145,6 +148,52 @@ button {
   font-size: 13px;
 }
 
+.contact-search-input {
+  width: 100%;
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1f2937;
+  outline: none;
+}
+
+.contact-search-input::placeholder {
+  color: #9ca3af;
+}
+
+.contact-search-input:focus {
+  border-color: #25D366;
+  box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.12);
+}
+
+.contact-status-select {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1f2937;
+  outline: none;
+}
+
+.contact-status-select:focus {
+  border-color: #25D366;
+  box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.12);
+}
+
+.contact-status-summary {
+  margin-bottom: 18px;
+  padding: 10px 14px;
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+  background: #ecfdf3;
+  color: #15803d;
+  font-size: 13px;
+  font-weight: 600;
+}
 .contact-list ul {
   display: grid;
   gap: 10px;
@@ -154,6 +203,10 @@ button {
 }
 
 .contact-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   cursor: pointer;
   padding: 14px 16px;
   border: 1px solid #e5e7eb;
@@ -174,10 +227,33 @@ button {
   border-color: #86efac;
 }
 
+.contact-list-empty {
+  cursor: default;
+  justify-content: center;
+  color: #6b7280;
+  background: #ffffff;
+}
+
+.contact-list-empty:hover {
+  background: #ffffff;
+  border-color: #e5e7eb;
+  transform: none;
+}
+
+.contact-card-main {
+  min-width: 0;
+  display: grid;
+}
+
+.contact-card-name {
+  overflow-wrap: anywhere;
+}
+
 .contact-list small,
 .status-badge {
   display: inline-flex;
   align-items: center;
+  width: fit-content;
   margin-top: 8px;
   padding: 4px 10px;
   border-radius: 999px;
@@ -209,6 +285,23 @@ button {
   background: #fef2f2;
   color: #dc2626;
   border-color: #fecaca;
+}
+
+.delete-contact-btn {
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 9px 12px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.delete-contact-btn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
 }
 
 .conversation-view {
@@ -286,27 +379,6 @@ button {
 .empty-state,
 .empty-messages {
   color: #6b7280;
-}
-
-.simulator-box {
-  margin-bottom: 16px;
-  padding: 14px 16px;
-  border: 1px solid #dcece2;
-  border-radius: 16px;
-  background: #fafdfb;
-}
-
-.simulator-label {
-  display: block;
-  margin-bottom: 10px;
-  color: #355644;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.simulator-row {
-  display: flex;
-  gap: 12px;
 }
 
 .messages {
@@ -388,15 +460,17 @@ button {
     align-items: stretch;
   }
 
-  .simulator-row {
+  .contact-list li,
+  .msg-form {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .msg {
     max-width: 90%;
   }
 
-  .msg-form {
-    flex-direction: column;
+  .delete-contact-btn {
+    width: 100%;
   }
 }
