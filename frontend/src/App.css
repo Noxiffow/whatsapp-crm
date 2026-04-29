@@ -481,8 +481,6 @@ button {
     align-items: stretch;
   }
 
-  .contact-list li,
-  .msg-form {
   .conversation-actions {
     flex-direction: column;
     align-items: stretch;
@@ -495,6 +493,10 @@ button {
 
   .msg {
     max-width: 90%;
+  }
+
+  .msg-form {
+    flex-direction: column;
   }
 
   .delete-contact-btn {

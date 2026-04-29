@@ -44,6 +44,7 @@ function App() {
     }
 
     setContacts(data || []);
+    return data || [];
   };
 
   const updateConversationTimestamp = async (conversationId, timestamp) => {
@@ -114,9 +115,8 @@ function App() {
   };
 
   const handleRefreshCurrentView = async () => {
-    setActionInfo('Vista actualizada.');
-    await fetchContacts();
     setIsRefreshing(true);
+    setActionInfo('Vista actualizada.');
 
     const refreshedContacts = await fetchContacts();
     if (!refreshedContacts) {
@@ -354,14 +354,14 @@ function App() {
       return false;
     }
 
-    console.log('Delete contact ID before fetch:', contactId);
     setContactError('');
 
     try {
-      const res = await fetch(`/api/contactos/${contactId}`, { method: 'DELETE' });
+      const { error } = await supabase.rpc('delete_contact_cascade', {
+        p_contact_id: contactId,
+      });
 
-      if (!res.ok) {
-        console.error('Error DELETE:', res.status, await res.text());
+      if (error) {
         throw new Error('No se pudo eliminar el contacto.');
       }
 
