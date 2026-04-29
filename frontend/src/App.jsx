@@ -23,6 +23,7 @@ function App() {
   const [contactError, setContactError] = useState('');
   const [actionError, setActionError] = useState('');
   const [actionInfo, setActionInfo] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const selectedContact = contacts.find((contact) => contact.id === selectedContactId) || null;
 
@@ -115,9 +116,29 @@ function App() {
   const handleRefreshCurrentView = async () => {
     setActionInfo('Vista actualizada.');
     await fetchContacts();
+    setIsRefreshing(true);
+
+    const refreshedContacts = await fetchContacts();
+    if (!refreshedContacts) {
+      setIsRefreshing(false);
+      return;
+    }
+
     if (selectedContactId) {
+      const selectedStillExists = refreshedContacts.some((contact) => contact.id === selectedContactId);
+      if (!selectedStillExists) {
+        setSelectedContactId(null);
+        setConversation(null);
+        setMessages([]);
+        setNewMessage('');
+        setIsRefreshing(false);
+        return;
+      }
+
       await fetchConversation(selectedContactId);
     }
+
+    setIsRefreshing(false);
   };
 
   const handleDeleteSelectedContact = async () => {
@@ -327,6 +348,40 @@ function App() {
     }
   };
 
+  const handleDeleteContact = async (contactId) => {
+    const confirmed = window.confirm('¿Seguro que quieres eliminar este contacto?');
+    if (!confirmed) {
+      return false;
+    }
+
+    console.log('Delete contact ID before fetch:', contactId);
+    setContactError('');
+
+    try {
+      const res = await fetch(`/api/contactos/${contactId}`, { method: 'DELETE' });
+
+      if (!res.ok) {
+        console.error('Error DELETE:', res.status, await res.text());
+        throw new Error('No se pudo eliminar el contacto.');
+      }
+
+      setContacts((currentContacts) => currentContacts.filter((contact) => contact.id !== contactId));
+
+      if (selectedContactId === contactId) {
+        setSelectedContactId(null);
+        setConversation(null);
+        setMessages([]);
+        setNewMessage('');
+      }
+
+      await fetchContacts();
+      return true;
+    } catch (error) {
+      setContactError(error.message || 'No se pudo eliminar el contacto.');
+      return false;
+    }
+  };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -340,6 +395,7 @@ function App() {
           contacts={contacts}
           onContactSelect={handleContactSelect}
           onCreateContact={handleCreateContact}
+          onDeleteContact={handleDeleteContact}
           selectedId={selectedContactId}
           errorMessage={contactError}
         />
@@ -358,6 +414,7 @@ function App() {
           selectedContactId={selectedContactId}
           actionError={actionError}
           actionInfo={actionInfo}
+          isRefreshing={isRefreshing}
         />
       </div>
     </div>
