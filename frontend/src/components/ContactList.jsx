@@ -11,6 +11,14 @@ const ContactList = ({ contacts, onContactSelect, onCreateContact, onDeleteConta
 
   const getContactStatus = (contact) =>
     String(contact.lead_status ?? contact.estado ?? contact.status ?? '').toLowerCase();
+  const normalizeSearchValue = (value) =>
+    String(value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  const normalizePhoneValue = (value) =>
+    String(value ?? '').replace(/[^\d]/g, '');
 
   const statusCounts = contacts.reduce(
     (acc, contact) => {
@@ -47,18 +55,23 @@ const ContactList = ({ contacts, onContactSelect, onCreateContact, onDeleteConta
     perdido: `Total perdidos: ${statusCounts.perdido}`,
   };
 
-  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+  const normalizedSearchTerm = normalizeSearchValue(searchTerm);
+  const normalizedSearchPhone = normalizePhoneValue(searchTerm);
   const filteredContacts = contacts.filter((contact) => {
-    const contactName = String(contact.name ?? contact.nombre ?? '').toLowerCase();
-    const contactPhone = String(
+    const contactName = normalizeSearchValue(contact.name ?? contact.nombre ?? '');
+    const contactPhone = normalizeSearchValue(
       contact.whatsapp_number ?? contact.telefono ?? contact.phone ?? ''
-    ).toLowerCase();
+    );
+    const contactPhoneDigits = normalizePhoneValue(
+      contact.whatsapp_number ?? contact.telefono ?? contact.phone ?? ''
+    );
     const contactStatus = getContactStatus(contact);
 
     const matchesSearch =
       !normalizedSearchTerm ||
       contactName.includes(normalizedSearchTerm) ||
-      contactPhone.includes(normalizedSearchTerm);
+      contactPhone.includes(normalizedSearchTerm) ||
+      (!!normalizedSearchPhone && contactPhoneDigits.includes(normalizedSearchPhone));
 
     const matchesStatus =
       selectedStatusFilter === 'todos' || contactStatus === selectedStatusFilter;
@@ -71,21 +84,23 @@ const ContactList = ({ contacts, onContactSelect, onCreateContact, onDeleteConta
     if (!name.trim() || !whatsappNumber.trim()) return;
 
     setIsSubmitting(true);
-    const created = await onCreateContact({
-      name: name.trim(),
-      whatsappNumber: whatsappNumber.trim(),
-      leadStatus,
-    });
+    try {
+      const created = await onCreateContact({
+        name: name.trim(),
+        whatsappNumber: whatsappNumber.trim(),
+        leadStatus,
+      });
 
-    if (created) {
-      setName('');
-      setWhatsappNumber('');
-      setLeadStatus('nuevo');
-      setSearchTerm('');
-      setSelectedStatusFilter('todos');
+      if (created) {
+        setName('');
+        setWhatsappNumber('');
+        setLeadStatus('nuevo');
+        setSearchTerm('');
+        setSelectedStatusFilter('todos');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   };
 
   const handleDeleteClick = async (e, contact) => {

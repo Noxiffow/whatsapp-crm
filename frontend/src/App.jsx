@@ -115,8 +115,11 @@ function App() {
   };
 
   const handleRefreshCurrentView = async () => {
-    setIsRefreshing(true);
+    setContactError('');
+    setActionError('');
     setActionInfo('Vista actualizada.');
+    await fetchContacts();
+    setIsRefreshing(true);
 
     const refreshedContacts = await fetchContacts();
     if (!refreshedContacts) {
@@ -355,6 +358,7 @@ function App() {
     }
 
     setContactError('');
+    setActionError('');
 
     try {
       const { error } = await supabase.rpc('delete_contact_cascade', {
@@ -375,9 +379,11 @@ function App() {
       }
 
       await fetchContacts();
+      setActionInfo('Contacto eliminado correctamente.');
       return true;
     } catch (error) {
       setContactError(error.message || 'No se pudo eliminar el contacto.');
+      setActionError(error.message || 'No se pudo eliminar el contacto.');
       return false;
     }
   };
