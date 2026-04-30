@@ -85,6 +85,28 @@ Para empezar a endurecer la seguridad, las operaciones sensibles ya no se dejan 
 
 Esto permite mantener la agilidad del MVP sin dejar toda la lógica crítica expuesta únicamente al cliente web.
 
+## Contrato actual para frontend
+
+Para evitar que frontend invente lógica distinta a la ya acordada, estas son las reglas activas de la rama `jonathan/backend`:
+
+- `lead_status` existe en la tabla `contactos`
+- valores válidos exactos:
+  - `nuevo`
+  - `contactado`
+  - `cualificado`
+  - `perdido`
+- el borrado de contactos no debe hacerse con `delete` directo ni con el backend heredado, sino con la RPC:
+  - `delete_contact_cascade(p_contact_id)`
+- la actualización manual del estado comercial del lead debe pasar por la RPC:
+  - `update_contact_lead_status(p_contact_id, p_new_status)`
+
+### Qué puede asumir frontend
+
+- el selector de estado debe usar exactamente esos cuatro valores en minúsculas
+- tras cambiar estado, frontend debe refrescar el contacto o actualizar el estado local
+- el cambio de estado es manual; no debe automatizarse todavía al enviar o recibir mensajes
+- cualquier operación sensible debe apoyarse en Supabase RPC y no en rutas antiguas del backend local
+
 ## Objetivo
 
 Construir una base de CRM de WhatsApp útil para gestión comercial, con un enfoque rápido, funcional y de bajo coste, manteniendo el desarrollo apoyado en herramientas gratuitas.
