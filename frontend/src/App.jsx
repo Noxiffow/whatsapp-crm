@@ -170,6 +170,63 @@ function App() {
     await fetchContacts();
   };
 
+  const handleDeleteChat = async () => {
+    if (!selectedContactId || !selectedContact) {
+      setActionError('No hay ningún contacto seleccionado.');
+      return;
+    }
+
+    if (!conversation) {
+      setActionError('');
+      setActionInfo('No hay chat activo para eliminar.');
+      setMessages([]);
+      setNewMessage('');
+      return;
+    }
+
+    const confirmed = window.confirm('¿Seguro que quieres eliminar este chat?');
+    if (!confirmed) {
+      return;
+    }
+
+    setActionError('');
+    setActionInfo('');
+
+    const { error: messagesError } = await supabase
+      .from('mensajes')
+      .delete()
+      .eq('conversacion_id', conversation.id);
+
+    if (messagesError) {
+      setActionError('No se pudo eliminar el chat desde Supabase.');
+      return;
+    }
+
+    const { error: conversationError } = await supabase
+      .from('conversaciones')
+      .update({ is_active: false })
+      .eq('id', conversation.id);
+
+    if (conversationError) {
+      setActionError('No se pudo cerrar el chat en Supabase.');
+      return;
+    }
+
+    setConversation(null);
+    setMessages([]);
+    setNewMessage('');
+    setActionInfo('Chat eliminado correctamente.');
+  };
+
+  const handleCloseConversation = () => {
+    setSelectedContactId(null);
+    setConversation(null);
+    setMessages([]);
+    setNewMessage('');
+    setActionError('');
+    setActionInfo('');
+  };
+
   const fetchConversation = async (contactId) => {
     setActionError('');
     const { data, error } = await supabase
@@ -388,6 +445,30 @@ function App() {
     }
   };
 
+  const handleUpdateContactStatus = async (contactId, leadStatus) => {
+    setContactError('');
+    setActionError('');
+
+    const { error } = await supabase
+      .from('contactos')
+      .update({ lead_status: leadStatus })
+      .eq('id', contactId);
+
+    if (error) {
+      setContactError('No se pudo actualizar el estado del contacto.');
+      setActionError('No se pudo actualizar el estado del contacto.');
+      return false;
+    }
+
+    setContacts((currentContacts) =>
+      currentContacts.map((contact) =>
+        contact.id === contactId ? { ...contact, lead_status: leadStatus } : contact
+      )
+    );
+    setActionInfo('Estado del contacto actualizado.');
+    return true;
+  };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -402,26 +483,35 @@ function App() {
           onContactSelect={handleContactSelect}
           onCreateContact={handleCreateContact}
           onDeleteContact={handleDeleteContact}
+          onUpdateContactStatus={handleUpdateContactStatus}
           selectedId={selectedContactId}
           errorMessage={contactError}
         />
-        <ConversationView
-          conversation={conversation}
-          messages={messages}
-          newMessage={newMessage}
-          onMessageChange={(e) => setNewMessage(e.target.value)}
-          onSendMessage={handleSendMessage}
-          onRefresh={handleRefreshCurrentView}
-          onDeleteContact={handleDeleteSelectedContact}
-          onSimulateIncoming={handleSimulateIncoming}
-          simulateMessage={simulateMessage}
-          onSimulateMessageChange={(e) => setSimulateMessage(e.target.value)}
-          selectedContact={selectedContact}
-          selectedContactId={selectedContactId}
-          actionError={actionError}
-          actionInfo={actionInfo}
-          isRefreshing={isRefreshing}
-        />
+        {selectedContactId ? (
+          <ConversationView
+            conversation={conversation}
+            messages={messages}
+            newMessage={newMessage}
+            onMessageChange={(e) => setNewMessage(e.target.value)}
+            onSendMessage={handleSendMessage}
+            onRefresh={handleRefreshCurrentView}
+            onDeleteChat={handleDeleteChat}
+            onDeleteContact={handleDeleteSelectedContact}
+            onCloseConversation={handleCloseConversation}
+            onSimulateIncoming={handleSimulateIncoming}
+            simulateMessage={simulateMessage}
+            onSimulateMessageChange={(e) => setSimulateMessage(e.target.value)}
+            selectedContact={selectedContact}
+            selectedContactId={selectedContactId}
+            actionError={actionError}
+            actionInfo={actionInfo}
+            isRefreshing={isRefreshing}
+          />
+        ) : (
+          <div className="conversation-view conversation-empty">
+            <p>Selecciona un contacto para ver la conversación.</p>
+          </div>
+        )}
       </div>
     </div>
   );

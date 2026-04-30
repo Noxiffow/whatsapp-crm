@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 
-const ContactList = ({ contacts, onContactSelect, onCreateContact, onDeleteContact, selectedId, errorMessage }) => {
+const ContactList = ({
+  contacts,
+  onContactSelect,
+  onCreateContact,
+  onDeleteContact,
+  onUpdateContactStatus,
+  selectedId,
+  errorMessage,
+}) => {
   const [name, setName] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [leadStatus, setLeadStatus] = useState('nuevo');
@@ -8,6 +16,7 @@ const ContactList = ({ contacts, onContactSelect, onCreateContact, onDeleteConta
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('todos');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingContactId, setDeletingContactId] = useState(null);
+  const [updatingStatusId, setUpdatingStatusId] = useState(null);
 
   const getContactStatus = (contact) =>
     String(contact.lead_status ?? contact.estado ?? contact.status ?? '').toLowerCase();
@@ -123,6 +132,19 @@ const ContactList = ({ contacts, onContactSelect, onCreateContact, onDeleteConta
     setDeletingContactId(null);
   };
 
+  const handleStatusChange = async (e, contact) => {
+    e.stopPropagation();
+    if (!onUpdateContactStatus) {
+      return;
+    }
+
+    const contactId = contact.id ?? contact.contacto_id ?? contact.contactoId;
+    const nextStatus = e.target.value;
+    setUpdatingStatusId(contactId);
+    await onUpdateContactStatus(contactId, nextStatus);
+    setUpdatingStatusId(null);
+  };
+
   return (
     <div className="contact-list">
       <h2>Contactos</h2>
@@ -172,38 +194,75 @@ const ContactList = ({ contacts, onContactSelect, onCreateContact, onDeleteConta
       <div className={`contact-status-summary contact-status-summary-${selectedStatusOption.value}`}>
         {statusCountTextMap[selectedStatusOption.value]}
       </div>
-      <ul>
-        {filteredContacts.length === 0 ? (
-          <li className="contact-list-empty">
-            {selectedStatusFilter !== 'todos' ? 'No hay contactos con este filtro' : 'No se encontraron contactos'}
-          </li>
-        ) : (
-          filteredContacts.map((contact) => {
-            const resolvedId = contact.id ?? contact.contacto_id ?? contact.contactoId;
+      <div className="contacts-list-scroll">
+        <ul>
+          {filteredContacts.length === 0 ? (
+            <li className="contact-list-empty">
+              {selectedStatusFilter !== 'todos' ? 'No hay contactos con este filtro' : 'No se encontraron contactos'}
+            </li>
+          ) : (
+            filteredContacts.map((contact) => {
+              const resolvedId = contact.id ?? contact.contacto_id ?? contact.contactoId;
 
-            return (
-              <li
-                key={resolvedId}
-                className={selectedId === resolvedId ? 'selected' : ''}
-                onClick={() => onContactSelect(resolvedId)}
-              >
-                <div className="contact-card-main">
-                  <div className="contact-card-name">{contact.name} ({contact.whatsapp_number})</div>
-                  <small className={`status-badge status-${contact.lead_status}`}>{contact.lead_status}</small>
-                </div>
-                <button
-                  type="button"
-                  className="delete-contact-btn"
-                  onClick={(e) => handleDeleteClick(e, contact)}
-                  disabled={deletingContactId === resolvedId}
+              return (
+                <li
+                  key={resolvedId}
+                  className={selectedId === resolvedId ? 'selected' : ''}
+                  onClick={() => onContactSelect(resolvedId)}
                 >
-                  {deletingContactId === resolvedId ? 'Eliminando...' : 'Eliminar'}
-                </button>
-              </li>
-            );
-          })
-        )}
-      </ul>
+                  <div className="contact-card">
+                    <div className="contact-main">
+                      <div className="contact-header">
+                        <div className="contact-info">
+                          <div className="contact-name-line">
+                            <span className="contact-card-name">{contact.name}</span>
+                            <span className="contact-phone">({contact.whatsapp_number})</span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className="delete-contact-btn delete-btn"
+                          onClick={(e) => handleDeleteClick(e, contact)}
+                          disabled={deletingContactId === resolvedId}
+                          aria-label="Eliminar contacto"
+                        >
+                          {deletingContactId === resolvedId ? (
+                            '…'
+                          ) : (
+                            <svg className="trash-icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                              <path className="trash-lid" d="M3 6h18" />
+                              <path className="trash-lid" d="M8 6V4h8v2" />
+                              <rect className="trash-body" x="6" y="6" width="12" height="14" rx="2" />
+                              <line className="trash-body" x1="10" y1="11" x2="10" y2="17" />
+                              <line className="trash-body" x1="14" y1="11" x2="14" y2="17" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+
+                      <div className="contact-status-row">
+                        <select
+                          className={`contact-status-badge-select contact-status status-${contact.lead_status}`}
+                          value={contact.lead_status}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => handleStatusChange(e, contact)}
+                          disabled={updatingStatusId === resolvedId}
+                          aria-label={`Cambiar estado de ${contact.name}`}
+                        >
+                          <option value="nuevo">Nuevo</option>
+                          <option value="contactado">Contactado</option>
+                          <option value="cualificado">Cualificado</option>
+                          <option value="perdido">Perdido</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              );
+            })
+          )}
+        </ul>
+      </div>
     </div>
   );
 };
