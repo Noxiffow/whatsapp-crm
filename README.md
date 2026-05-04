@@ -11,145 +11,95 @@ Actualmente permite:
 - crear contactos desde la interfaz
 - abrir o generar conversaciones asociadas a cada cliente
 - registrar mensajes entrantes y salientes
-- simular mensajes para pruebas funcionales
-- validar el flujo principal del CRM con datos ficticios
+- validar el flujo principal del CRM con datos simulados
 
-## Estado actual
+## Estado Actual
 
-El proyecto se encuentra en fase MVP con infraestructura lista en Supabase.
+El proyecto se encuentra en fase MVP con infraestructura en Supabase.
 
-**Estado real a 4 de mayo de 2026:**
+**Estado a 4 de mayo de 2026:**
 
-✅ **Funcionalidades implementadas:**
-- Contactos, conversaciones y mensajes funcionando en Supabase
-- Búsqueda normalizada por nombre (con acentos) y teléfono
-- Validación de formato de teléfono (interfaz + base de datos)
-- Eliminación segura de contactos vía RPC (delete_contact_cascade)
-- Actualización de estado de lead vía RPC (update_contact_lead_status)
-- Frontend mínimo operativo con Supabase client directo
+✅ **Implementado:**
+- Contactos, conversaciones y mensajes en Supabase
+- Búsqueda por nombre y teléfono
+- Validación de formato teléfono (interfaz + BD)
+- Eliminación segura vía RPC (`delete_contact_cascade`)
+- Actualización de estado lead vía RPC (`update_contact_lead_status`)
+- Frontend operativo con Supabase client
 
 ⏳ **En progreso:**
-- Configuración Vercel para preview live (rama jonathan/backend)
-- Sincronización UI mejorado de Galya (rama galya/frontend-ui-v2)
+- Despliegue en Vercel
 
 ## Stack
 
-### Stack actual de trabajo
+### Producción
 
 - React + Vite
 - Supabase PostgreSQL
-- GitHub
-- Vercel (próximamente)
+- Vercel (deployment)
 
-### Stack heredado o de apoyo
+### Local / Desarrollo Heredado
 
-- FastAPI (backend local)
+- FastAPI (backend local, opcional)
 - SQLModel
-- SQLite (local development)
+- SQLite
 
-### Stack final previsto
+## Estructura
 
-- React + Vite
-- Tailwind CSS
-- Cloudflare Pages / Workers
-- Supabase Free
-
-## Estructura del proyecto
-
-- `backend/`: API y base local heredada del MVP inicial
-- `frontend/`: interfaz web del CRM
-- `supabase/migrations/`: migraciones SQL versionadas para la base de datos final
-- `TECHNICAL_DESIGN.md`: documentación técnica del proyecto (heredada)
-- `COORDINATION.md`: flujo de trabajo y ramas actuales (LEER ESTO)
-
-## Ramas y Flujo de Desarrollo
-
-| Rama | Propietario | Responsabilidad |
-|------|---|---|
-| `origin/jonathan/backend` | Jonathan | Backend integrado, documentación contrato |
-| `origin/galya/frontend-ui-v2` | Galya | Frontend UI, búsqueda mejorada |
-| `origin/main` | — | ⚠️ Obsoleto, no tocar |
-
-**Flujo:** Galya hace push a `galya/frontend-ui-v2` → Jonathan mergea → Deploy automático en Vercel
-
-⚠️ **Lee primero:** [COORDINATION.md](./COORDINATION.md) para entender el setup de Vercel y flujo de trabajo.
+```
+.
+├── backend/           # API local (heredada, opcional)
+├── frontend/          # React + Vite
+│   ├── src/
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── vercel.json    # Vercel deployment config
+│   └── .vercelignore
+├── supabase/
+│   └── migrations/    # SQL versioned
+└── README.md
+```
 
 ## Ejecución Local
 
-**Frontend (Supabase directo):**
+**Frontend:**
 
 ```bash
-cd "/Users/otanewi/Desktop/Prácticas WinoWin/Proyectos/crm-whatsapp-winowin/frontend"
+cd frontend
 npm install
 npm run dev
 ```
 
-Abre: `http://localhost:5173`
+Abre `http://localhost:5173`
 
-**Backend heredado (solo si necesario para testing):**
+**Backend heredado (opcional, solo testing):**
 
 ```bash
-cd "/Users/otanewi/Desktop/Prácticas WinoWin/Proyectos/crm-whatsapp-winowin"
 source backend/.venv_codex/bin/activate
 python -m backend.app.main
 ```
 
-⚠️ Backend local no es necesario para desarrollo; todo usa Supabase directamente.
+## Seguridad
 
-## Ver en Vivo (Live Preview)
+Operaciones críticas protegidas vía Supabase RPC (no DELETE directo):
 
-**URL de Vercel:** `https://whatsapp-crm-six-steel.vercel.app` (configurar después de Phase 3 en COORDINATION.md)
+- `delete_contact_cascade(p_contact_id)`
+- `update_contact_lead_status(p_contact_id, p_new_status)`
 
-Ambos desarrolladores verán los cambios en tiempo real una vez Vercel esté configurado.
+Valores válidos de `lead_status`:
+- `nuevo`
+- `contactado`
+- `cualificado`
+- `perdido`
 
-## Seguridad y capa intermedia actual
+## Ramas
 
-Durante la fase de pruebas, el frontend sigue consultando y registrando datos en Supabase con la clave pública del proyecto.
-
-Para empezar a endurecer la seguridad, las operaciones sensibles ya no se dejan abiertas de forma directa:
-
-- el borrado de contactos ya no se hace con `delete` directo sobre la tabla
-- ahora pasa por una función RPC de Supabase (`delete_contact_cascade`)
-- las migraciones asociadas están versionadas en `supabase/migrations/`
-
-Esto permite mantener la agilidad del MVP sin dejar toda la lógica crítica expuesta únicamente al cliente web.
-
-## Contrato actual para frontend
-
-Para evitar que frontend invente lógica distinta a la ya acordada, estas son las reglas activas en la rama `jonathan/backend`:
-
-### Estados de Lead (`lead_status`)
-
-- Campo: `contactos.lead_status`
-- Valores válidos exactos (minúsculas):
-  - `nuevo`
-  - `contactado`
-  - `cualificado`
-  - `perdido`
-
-### Operaciones Seguras vía RPC
-
-**Eliminación de contacto:**
-```sql
-delete_contact_cascade(p_contact_id INT)
-```
-- No usar `DELETE` directo desde frontend
-- No usar backend heredado para esto
-
-**Actualización de estado:**
-```sql
-update_contact_lead_status(p_contact_id INT, p_new_status TEXT)
-```
-- Valores válidos: mismo listado de lead_status
-- Cambio es manual; no automatizar con mensajes (por ahora)
-
-### Qué puede asumir frontend
-
-- El selector de estado debe usar exactamente los cuatro valores en minúsculas
-- Tras cambiar estado, frontend debe refrescar el contacto o actualizar el estado local
-- El cambio de estado es manual; no debe automatizarse todavía al enviar o recibir mensajes
-- Cualquier operación sensible debe apoyarse en Supabase RPC y no en rutas antiguas del backend local
+| Rama | Descripción |
+|------|---|
+| `jonathan/backend` | Rama de integración principal |
+| `galya/frontend-ui-v2` | Desarrollo de UI |
+| `main` | Desactualizada, no usar |
 
 ## Objetivo
 
-Construir una base de CRM de WhatsApp útil para gestión comercial, con un enfoque rápido, funcional y de bajo coste, manteniendo el desarrollo apoyado en herramientas gratuitas.
+Construir un CRM funcional, rápido y de bajo coste para gestión comercial vía WhatsApp.
