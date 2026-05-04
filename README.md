@@ -11,80 +11,95 @@ Actualmente permite:
 - crear contactos desde la interfaz
 - abrir o generar conversaciones asociadas a cada cliente
 - registrar mensajes entrantes y salientes
-- simular mensajes para pruebas funcionales
-- validar el flujo principal del CRM con datos ficticios
+- validar el flujo principal del CRM con datos simulados
 
-## Estado actual
+## Estado Actual
 
-El proyecto se encuentra en fase MVP, con la validación funcional del flujo principal ya migrada a Supabase.
+El proyecto se encuentra en fase MVP con infraestructura en Supabase.
 
-Estado real a 29 de abril de 2026:
+**Estado a 4 de mayo de 2026:**
 
-- contactos, conversaciones y mensajes funcionando en Supabase
-- frontend mínimo operativo para testing
-- validación básica del formato del teléfono aplicada en interfaz y en base de datos
-- borrado de contactos movido a una función RPC segura de Supabase para evitar eliminación directa desde frontend
-- backend local de FastAPI conservado como base heredada de validación inicial, pero ya no es el flujo principal de pruebas
-- trabajo visual del frontend en paralelo con Galya
+✅ **Implementado:**
+- Contactos, conversaciones y mensajes en Supabase
+- Búsqueda por nombre y teléfono
+- Validación de formato teléfono (interfaz + BD)
+- Eliminación segura vía RPC (`delete_contact_cascade`)
+- Actualización de estado lead vía RPC (`update_contact_lead_status`)
+- Frontend operativo con Supabase client
+
+⏳ **En progreso:**
+- Despliegue en Vercel
 
 ## Stack
 
-### Stack actual de trabajo
+### Producción
 
 - React + Vite
-- Supabase
-- GitHub
+- Supabase PostgreSQL
+- Vercel (deployment)
 
-### Stack heredado o de apoyo
+### Local / Desarrollo Heredado
 
-- FastAPI
+- FastAPI (backend local, opcional)
 - SQLModel
 - SQLite
 
-### Stack final previsto
+## Estructura
 
-- React + Vite
-- Tailwind CSS
-- Cloudflare Pages / Workers
-- Supabase Free
+```
+.
+├── backend/           # API local (heredada, opcional)
+├── frontend/          # React + Vite
+│   ├── src/
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── vercel.json    # Vercel deployment config
+│   └── .vercelignore
+├── supabase/
+│   └── migrations/    # SQL versioned
+└── README.md
+```
 
-## Estructura del proyecto
+## Ejecución Local
 
-- `backend/`: API y base local heredada del MVP inicial
-- `frontend/`: interfaz web del CRM
-- `supabase/migrations/`: migraciones SQL versionadas para la base de datos final
-- `TECHNICAL_DESIGN.md`: documentación técnica del proyecto
-
-## Ejecución local
-
-Frontend:
+**Frontend:**
 
 ```bash
-cd "/Users/otanewi/Desktop/Prácticas WinoWin/Proyectos/crm-whatsapp-winowin/frontend"
+cd frontend
 npm install
 npm run dev
 ```
 
-Si se necesita levantar también la base local heredada:
+Abre `http://localhost:5173`
+
+**Backend heredado (opcional, solo testing):**
 
 ```bash
-cd "/Users/otanewi/Desktop/Prácticas WinoWin/Proyectos/crm-whatsapp-winowin"
 source backend/.venv_codex/bin/activate
 python -m backend.app.main
 ```
 
-## Seguridad y capa intermedia actual
+## Seguridad
 
-Durante la fase de pruebas, el frontend sigue consultando y registrando datos en Supabase con la clave pública del proyecto.
+Operaciones críticas protegidas vía Supabase RPC (no DELETE directo):
 
-Para empezar a endurecer la seguridad, las operaciones sensibles ya no se dejan abiertas de forma directa:
+- `delete_contact_cascade(p_contact_id)`
+- `update_contact_lead_status(p_contact_id, p_new_status)`
 
-- el borrado de contactos ya no se hace con `delete` directo sobre la tabla
-- ahora pasa por una función RPC de Supabase (`delete_contact_cascade`)
-- las migraciones asociadas están versionadas en `supabase/migrations/`
+Valores válidos de `lead_status`:
+- `nuevo`
+- `contactado`
+- `cualificado`
+- `perdido`
 
-Esto permite mantener la agilidad del MVP sin dejar toda la lógica crítica expuesta únicamente al cliente web.
+## Ramas
+
+| Rama | Descripción |
+|------|---|
+| `jonathan/backend` | Rama de integración principal |
+| `galya/frontend-ui-v2` | Desarrollo de UI |
+| `main` | Desactualizada, no usar |
 
 ## Objetivo
 
-Construir una base de CRM de WhatsApp útil para gestión comercial, con un enfoque rápido, funcional y de bajo coste, manteniendo el desarrollo apoyado en herramientas gratuitas.
+Construir un CRM funcional, rápido y de bajo coste para gestión comercial vía WhatsApp.
