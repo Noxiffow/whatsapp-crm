@@ -16,30 +16,36 @@ Actualmente permite:
 
 ## Estado actual
 
-El proyecto se encuentra en fase MVP, con la validación funcional del flujo principal ya migrada a Supabase.
+El proyecto se encuentra en fase MVP con infraestructura lista en Supabase.
 
-Estado real a 29 de abril de 2026:
+**Estado real a 4 de mayo de 2026:**
 
-- contactos, conversaciones y mensajes funcionando en Supabase
-- frontend mínimo operativo para testing
-- validación básica del formato del teléfono aplicada en interfaz y en base de datos
-- borrado de contactos movido a una función RPC segura de Supabase para evitar eliminación directa desde frontend
-- backend local de FastAPI conservado como base heredada de validación inicial, pero ya no es el flujo principal de pruebas
-- trabajo visual del frontend en paralelo con Galya
+✅ **Funcionalidades implementadas:**
+- Contactos, conversaciones y mensajes funcionando en Supabase
+- Búsqueda normalizada por nombre (con acentos) y teléfono
+- Validación de formato de teléfono (interfaz + base de datos)
+- Eliminación segura de contactos vía RPC (delete_contact_cascade)
+- Actualización de estado de lead vía RPC (update_contact_lead_status)
+- Frontend mínimo operativo con Supabase client directo
+
+⏳ **En progreso:**
+- Configuración Vercel para preview live (rama jonathan/backend)
+- Sincronización UI mejorado de Galya (rama galya/frontend-ui-v2)
 
 ## Stack
 
 ### Stack actual de trabajo
 
 - React + Vite
-- Supabase
+- Supabase PostgreSQL
 - GitHub
+- Vercel (próximamente)
 
 ### Stack heredado o de apoyo
 
-- FastAPI
+- FastAPI (backend local)
 - SQLModel
-- SQLite
+- SQLite (local development)
 
 ### Stack final previsto
 
@@ -53,25 +59,48 @@ Estado real a 29 de abril de 2026:
 - `backend/`: API y base local heredada del MVP inicial
 - `frontend/`: interfaz web del CRM
 - `supabase/migrations/`: migraciones SQL versionadas para la base de datos final
-- `TECHNICAL_DESIGN.md`: documentación técnica del proyecto
+- `TECHNICAL_DESIGN.md`: documentación técnica del proyecto (heredada)
+- `COORDINATION.md`: flujo de trabajo y ramas actuales (LEER ESTO)
 
-## Ejecución local
+## Ramas y Flujo de Desarrollo
 
-Frontend:
+| Rama | Propietario | Responsabilidad |
+|------|---|---|
+| `origin/jonathan/backend` | Jonathan | Backend integrado, documentación contrato |
+| `origin/galya/frontend-ui-v2` | Galya | Frontend UI, búsqueda mejorada |
+| `origin/main` | — | ⚠️ Obsoleto, no tocar |
+
+**Flujo:** Galya hace push a `galya/frontend-ui-v2` → Jonathan mergea → Deploy automático en Vercel
+
+⚠️ **Lee primero:** [COORDINATION.md](./COORDINATION.md) para entender el setup de Vercel y flujo de trabajo.
+
+## Ejecución Local
+
+**Frontend (Supabase directo):**
 
 ```bash
-cd "/Users/otanewi/Desktop/Prácticas WinoWin/Proyectos/crm-whatsapp-winowin/frontend"
+cd "/Users/otanewi/Desktop/Prácticas WinoWin/Proyectos/crm-whatsapp-winowin/frontend"
 npm install
 npm run dev
 ```
 
-Si se necesita levantar también la base local heredada:
+Abre: `http://localhost:5173`
+
+**Backend heredado (solo si necesario para testing):**
 
 ```bash
-cd "/Users/otanewi/Desktop/Prácticas WinoWin/Proyectos/crm-whatsapp-winowin"
+cd "/Users/otanewi/Desktop/Prácticas WinoWin/Proyectos/crm-whatsapp-winowin"
 source backend/.venv_codex/bin/activate
 python -m backend.app.main
 ```
+
+⚠️ Backend local no es necesario para desarrollo; todo usa Supabase directamente.
+
+## Ver en Vivo (Live Preview)
+
+**URL de Vercel:** `https://whatsapp-crm-six-steel.vercel.app` (configurar después de Phase 3 en COORDINATION.md)
+
+Ambos desarrolladores verán los cambios en tiempo real una vez Vercel esté configurado.
 
 ## Seguridad y capa intermedia actual
 
@@ -87,25 +116,39 @@ Esto permite mantener la agilidad del MVP sin dejar toda la lógica crítica exp
 
 ## Contrato actual para frontend
 
-Para evitar que frontend invente lógica distinta a la ya acordada, estas son las reglas activas de la rama `jonathan/backend`:
+Para evitar que frontend invente lógica distinta a la ya acordada, estas son las reglas activas en la rama `jonathan/backend`:
 
-- `lead_status` existe en la tabla `contactos`
-- valores válidos exactos:
+### Estados de Lead (`lead_status`)
+
+- Campo: `contactos.lead_status`
+- Valores válidos exactos (minúsculas):
   - `nuevo`
   - `contactado`
   - `cualificado`
   - `perdido`
-- el borrado de contactos no debe hacerse con `delete` directo ni con el backend heredado, sino con la RPC:
-  - `delete_contact_cascade(p_contact_id)`
-- la actualización manual del estado comercial del lead debe pasar por la RPC:
-  - `update_contact_lead_status(p_contact_id, p_new_status)`
+
+### Operaciones Seguras vía RPC
+
+**Eliminación de contacto:**
+```sql
+delete_contact_cascade(p_contact_id INT)
+```
+- No usar `DELETE` directo desde frontend
+- No usar backend heredado para esto
+
+**Actualización de estado:**
+```sql
+update_contact_lead_status(p_contact_id INT, p_new_status TEXT)
+```
+- Valores válidos: mismo listado de lead_status
+- Cambio es manual; no automatizar con mensajes (por ahora)
 
 ### Qué puede asumir frontend
 
-- el selector de estado debe usar exactamente esos cuatro valores en minúsculas
-- tras cambiar estado, frontend debe refrescar el contacto o actualizar el estado local
-- el cambio de estado es manual; no debe automatizarse todavía al enviar o recibir mensajes
-- cualquier operación sensible debe apoyarse en Supabase RPC y no en rutas antiguas del backend local
+- El selector de estado debe usar exactamente los cuatro valores en minúsculas
+- Tras cambiar estado, frontend debe refrescar el contacto o actualizar el estado local
+- El cambio de estado es manual; no debe automatizarse todavía al enviar o recibir mensajes
+- Cualquier operación sensible debe apoyarse en Supabase RPC y no en rutas antiguas del backend local
 
 ## Objetivo
 
