@@ -200,17 +200,20 @@ button {
   font-weight: 600;
 }
 .contacts-list-scroll {
+  min-height: 0;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   height: auto !important;
-  max-height: 300px !important;
+  max-height: 380px !important;
+  padding-right: 4px;
+  padding-bottom: 10px;
 }
 
 .contact-list ul {
   display: grid;
   gap: 10px;
   margin: 0;
-  padding: 0;
+  padding: 0 0 8px;
   list-style: none;
 }
 
@@ -730,7 +733,7 @@ button {
   gap: 12px;
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: 360px;
+  max-height: 320px;
   min-height: 220px;
   padding: 4px 6px 18px;
   scrollbar-gutter: stable;
