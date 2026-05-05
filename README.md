@@ -79,6 +79,43 @@ source backend/.venv_codex/bin/activate
 python -m backend.app.main
 ```
 
+## Integracion con Meta (WhatsApp Cloud API)
+
+La primera integracion con Meta ya esta preparada para el frontend desplegado en Vercel mediante funciones serverless dentro de `frontend/api/`:
+
+- `GET /api/meta/webhook` valida el webhook con `META_VERIFY_TOKEN`.
+- `POST /api/meta/webhook` recibe mensajes entrantes de WhatsApp y los guarda en Supabase.
+- `POST /api/meta/send-message` envia mensajes reales por WhatsApp Cloud API y registra el mensaje saliente en Supabase.
+
+### Variables necesarias en Vercel
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `META_VERIFY_TOKEN`
+- `META_ACCESS_TOKEN`
+- `META_PHONE_NUMBER_ID`
+
+Opcionalmente, para aislar del todo la capa servidor, tambien se pueden definir:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+### Flujo esperado
+
+1. Meta envia un webhook a `/api/meta/webhook`.
+2. La funcion busca o crea el contacto por numero de telefono.
+3. La conversacion activa se busca o se crea si no existe.
+4. El mensaje entrante se guarda en Supabase.
+5. Cuando el usuario responde desde el CRM, el frontend llama a `/api/meta/send-message`.
+6. La funcion envia el texto a Meta y guarda el mensaje saliente en Supabase.
+
+### Estado actual
+
+- La base tecnica de Meta ya esta versionada.
+- Sigue disponible el simulador como apoyo para testing.
+- Falta terminar la configuracion en Meta Developer para validacion real del webhook y envio con numero de prueba.
+
 ## Seguridad
 
 Operaciones críticas protegidas vía Supabase RPC (no DELETE directo):

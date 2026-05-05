@@ -118,14 +118,9 @@ function App() {
     setContactError('');
     setActionError('');
     setActionInfo('Vista actualizada.');
-    await fetchContacts();
     setIsRefreshing(true);
 
     const refreshedContacts = await fetchContacts();
-    if (!refreshedContacts) {
-      setIsRefreshing(false);
-      return;
-    }
 
     if (selectedContactId) {
       const selectedStillExists = refreshedContacts.some((contact) => contact.id === selectedContactId);
@@ -211,52 +206,38 @@ function App() {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedContactId) return;
+    if (!newMessage.trim() || !selectedContactId || !selectedContact) return;
     setActionError('');
     setActionInfo('');
 
-    let activeConversation = conversation;
-    if (!conversation) {
-      try {
-        activeConversation = await ensureConversation(selectedContactId);
-        setConversation(activeConversation);
-      } catch (error) {
-        setActionError(error.message || 'No se pudo crear la conversación para este contacto.');
-        return;
-      }
-    }
-
-    const timestamp = new Date().toISOString();
-    const { data: msgData, error } = await supabase
-      .from('mensajes')
-      .insert({
-        conversacion_id: activeConversation.id,
-        direction: 'outgoing',
-        content: newMessage,
-        timestamp,
-        received_at: timestamp,
-        is_read: true,
-        delivery_status: 'sent',
-      })
-      .select()
-      .single();
-
-    if (error) {
-      setActionError('No se pudo enviar el mensaje en Supabase.');
-      return;
-    }
+    const messageToSend = newMessage.trim();
 
     try {
-      await updateConversationTimestamp(activeConversation.id, timestamp);
-    } catch (timestampError) {
-      setActionError(timestampError.message);
-      return;
-    }
+      const response = await fetch('/api/meta/send-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contactId: selectedContactId,
+          whatsappNumber: selectedContact.whatsapp_number,
+          contactName: selectedContact.name,
+          content: messageToSend,
+        }),
+      });
 
-    setMessages([...messages, msgData]);
-    setNewMessage('');
-    setActionInfo('Mensaje enviado correctamente.');
-    await fetchConversation(selectedContactId);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'No se pudo enviar el mensaje con Meta.');
+      }
+
+      setNewMessage('');
+      setActionInfo('Mensaje enviado correctamente por Meta.');
+      await fetchConversation(selectedContactId);
+    } catch (error) {
+      setActionError(error.message || 'No se pudo enviar el mensaje.');
+    }
   };
 
   const handleSimulateIncoming = async () => {
