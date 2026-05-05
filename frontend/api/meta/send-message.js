@@ -1,4 +1,11 @@
-const { findOrCreateContactByPhone, ensureConversation, storeMessage, normalizeWhatsappNumber } = require('../_lib/contacts');
+const {
+  findOrCreateContactByPhone,
+  ensureConversation,
+  storeMessage,
+  normalizeWhatsappNumber,
+  normalizeWhatsappNumberForMeta,
+  isValidWhatsappNumber,
+} = require('../_lib/contacts');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -19,14 +26,19 @@ module.exports = async function handler(req, res) {
     }
 
     const normalizedPhone = normalizeWhatsappNumber(whatsappNumber);
+    const metaRecipientPhone = normalizeWhatsappNumberForMeta(whatsappNumber);
     const metaAccessToken = process.env.META_ACCESS_TOKEN;
     const metaPhoneNumberId = process.env.META_PHONE_NUMBER_ID;
+
+    if (!isValidWhatsappNumber(normalizedPhone) || !metaRecipientPhone) {
+      return res.status(400).json({ ok: false, error: 'El teléfono no tiene un formato válido.' });
+    }
 
     if (!metaAccessToken || !metaPhoneNumberId) {
       return res.status(400).json({
         ok: false,
         requiresMetaConfig: true,
-        error: 'Faltan las credenciales de Meta en Vercel.',
+        error: 'Faltan META_ACCESS_TOKEN o META_PHONE_NUMBER_ID en Vercel.',
       });
     }
 
@@ -38,7 +50,7 @@ module.exports = async function handler(req, res) {
       },
       body: JSON.stringify({
         messaging_product: 'whatsapp',
-        to: normalizedPhone,
+        to: metaRecipientPhone,
         type: 'text',
         text: {
           body: String(content).trim(),

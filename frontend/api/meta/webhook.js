@@ -11,6 +11,10 @@ module.exports = async function handler(req, res) {
       return res.status(200).send(challenge);
     }
 
+    if (!verifyToken) {
+      return res.status(500).json({ ok: false, error: 'Falta META_VERIFY_TOKEN en Vercel.' });
+    }
+
     return res.status(403).json({ ok: false, error: 'Verificación de Meta fallida.' });
   }
 

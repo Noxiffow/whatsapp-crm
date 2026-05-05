@@ -1,6 +1,21 @@
 const { supabaseServer } = require('./supabaseServer');
 
-const normalizeWhatsappNumber = (rawValue = '') => String(rawValue).replace(/[\s()-]/g, '');
+const normalizeWhatsappNumber = (rawValue = '') => {
+  const compactValue = String(rawValue).replace(/[\s()-]/g, '');
+  const digitsOnly = compactValue.replace(/[^\d]/g, '');
+
+  if (!digitsOnly) {
+    return '';
+  }
+
+  return `+${digitsOnly}`;
+};
+
+const normalizeWhatsappNumberForMeta = (rawValue = '') =>
+  normalizeWhatsappNumber(rawValue).replace(/^\+/, '');
+
+const isValidWhatsappNumber = (rawValue = '') =>
+  /^\+[1-9][0-9]{8,14}$/.test(normalizeWhatsappNumber(rawValue));
 
 const formatDisplayNameFromNumber = (whatsappNumber) => {
   const trimmed = normalizeWhatsappNumber(whatsappNumber);
@@ -9,6 +24,10 @@ const formatDisplayNameFromNumber = (whatsappNumber) => {
 
 async function findOrCreateContactByPhone(whatsappNumber, preferredName) {
   const normalizedPhone = normalizeWhatsappNumber(whatsappNumber);
+
+  if (!isValidWhatsappNumber(normalizedPhone)) {
+    throw new Error('El teléfono recibido no tiene un formato válido.');
+  }
 
   const { data: existingContact, error: existingError } = await supabaseServer
     .from('contactos')
@@ -117,6 +136,8 @@ async function storeMessage({ conversationId, direction, content, timestamp, isR
 
 module.exports = {
   normalizeWhatsappNumber,
+  normalizeWhatsappNumberForMeta,
+  isValidWhatsappNumber,
   findOrCreateContactByPhone,
   ensureConversation,
   storeMessage,
