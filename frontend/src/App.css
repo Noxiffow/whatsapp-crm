@@ -45,6 +45,13 @@ button {
   gap: 20px;
 }
 
+.App-headerTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 .App-header h1 {
   margin: 0;
   font-size: clamp(28px, 4vw, 42px);
@@ -58,6 +65,33 @@ button {
   flex-shrink: 0;
 }
 
+.header-nav-btn,
+.stats-nav-btn {
+  cursor: pointer;
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  font-weight: 700;
+  backdrop-filter: blur(8px);
+}
+
+.header-nav-btn:hover,
+.stats-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.stats-nav-btn {
+  border-color: #d1fae5;
+  background: #ecfdf3;
+  color: #15803d;
+}
+
+.stats-nav-btn:hover {
+  background: #dcfce7;
+}
+
 .App-main {
   display: grid;
   grid-template-columns: minmax(300px, 360px) 1fr;
@@ -66,6 +100,195 @@ button {
   margin: 24px auto;
   min-height: calc(100vh - 160px);
   align-items: stretch;
+}
+
+.App-main-stats {
+  display: block;
+}
+
+.stats-view {
+  width: 100%;
+  padding: 28px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.stats-view-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stats-view h2 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  color: #1f2937;
+}
+
+.stats-view-subtitle {
+  margin: 0;
+  color: #6b7280;
+}
+
+.stats-summary-grid {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.stats-card {
+  flex: 0 0 150px;
+  min-width: 150px;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 84px;
+}
+
+.stats-card-total {
+  flex-basis: 180px;
+  min-width: 180px;
+  background: linear-gradient(135deg, #f0fdf4, #ffffff);
+}
+
+.stats-card-nuevo {
+  background: #f9fafb;
+}
+
+.stats-card-contactado {
+  background: #eff6ff;
+}
+
+.stats-card-cualificado {
+  background: #ecfdf3;
+}
+
+.stats-card-perdido {
+  background: #fef2f2;
+}
+
+.stats-card-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.stats-card-value {
+  display: block;
+  color: #1f2937;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.stats-card-helper {
+  display: block;
+  margin-top: 6px;
+  color: #6b7280;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.stats-chart-card {
+  padding: 22px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.stats-chart-card h3 {
+  margin: 0 0 18px;
+  color: #1f2937;
+  font-size: 18px;
+}
+
+.stats-bars {
+  display: grid;
+  gap: 16px;
+}
+
+.stats-bar-row {
+  display: grid;
+  gap: 8px;
+}
+
+.stats-bar-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stats-bar-label {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.stats-bar-label-nuevo {
+  color: #6b7280;
+}
+
+.stats-bar-label-contactado {
+  color: #2563eb;
+}
+
+.stats-bar-label-cualificado {
+  color: #15803d;
+}
+
+.stats-bar-label-perdido {
+  color: #dc2626;
+}
+
+.stats-bar-count {
+  color: #1f2937;
+}
+
+.stats-bar-track {
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #f3f4f6;
+}
+
+.stats-bar-fill {
+  height: 100%;
+  min-width: 0;
+  border-radius: inherit;
+}
+
+.stats-bar-fill-nuevo {
+  background: #d1d5db;
+}
+
+.stats-bar-fill-contactado {
+  background: #93c5fd;
+}
+
+.stats-bar-fill-cualificado {
+  background: #86efac;
+}
+
+.stats-bar-fill-perdido {
+  background: #fca5a5;
 }
 
 .contact-list,
@@ -826,6 +1049,10 @@ button {
     align-items: center;
   }
 
+  .App-headerTitleGroup {
+    align-items: flex-start;
+  }
+
   .App-headerLogo {
     width: 64px;
   }
@@ -835,6 +1062,43 @@ button {
     width: min(100%, calc(100% - 24px));
     margin: 16px auto 24px;
     min-height: 0;
+  }
+
+  .stats-view {
+    padding: 20px;
+  }
+
+  .stats-view-header {
+    flex-direction: column;
+  }
+
+  .stats-summary-grid {
+    gap: 8px;
+    padding-bottom: 6px;
+  }
+
+  .stats-card-total {
+    flex-basis: 168px;
+    min-width: 168px;
+  }
+
+  .stats-card {
+    flex-basis: 132px;
+    min-width: 132px;
+    min-height: 74px;
+    padding: 10px 12px;
+  }
+
+  .stats-card-label {
+    font-size: 10px;
+  }
+
+  .stats-card-value {
+    font-size: 20px;
+  }
+
+  .stats-card-helper {
+    font-size: 9px;
   }
 
   .contact-list,

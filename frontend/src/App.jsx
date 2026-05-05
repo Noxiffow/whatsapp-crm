@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import ContactList from './components/ContactList';
 import ConversationView from './components/ConversationView';
+import StatsView from './components/StatsView';
 import { supabase } from './lib/supabase';
 import './App.css';
 import winowinLogo from './assets/winowin-logo.svg';
@@ -15,17 +16,49 @@ const isValidWhatsappNumber = (rawValue) => {
 
 function App() {
   const [contacts, setContacts] = useState([]);
+  const [activeView, setActiveView] = useState('crm');
   const [selectedContactId, setSelectedContactId] = useState(null);
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [simulateMessage, setSimulateMessage] = useState('Hola, escribo para pedir información.');
+  const [simulateMessage, setSimulateMessage] = useState('Hola, escribo para pedir informacion.');
   const [contactError, setContactError] = useState('');
   const [actionError, setActionError] = useState('');
   const [actionInfo, setActionInfo] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const selectedContact = contacts.find((contact) => contact.id === selectedContactId) || null;
+
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const recentContacts = contacts.filter((contact) => {
+    if (!contact.created_at) {
+      return false;
+    }
+
+    const createdAt = new Date(contact.created_at);
+    if (Number.isNaN(createdAt.getTime())) {
+      return false;
+    }
+
+    return createdAt >= thirtyDaysAgo;
+  });
+
+  const stats = recentContacts.reduce(
+    (acc, contact) => {
+      acc.total += 1;
+
+      const normalizedStatus = String(contact.lead_status || '').trim().toLowerCase();
+      if (normalizedStatus === 'nuevo') acc.nuevo += 1;
+      if (normalizedStatus === 'contactado') acc.contactado += 1;
+      if (normalizedStatus === 'cualificado') acc.cualificado += 1;
+      if (normalizedStatus === 'perdido') acc.perdido += 1;
+
+      return acc;
+    },
+    { total: 0, nuevo: 0, contactado: 0, cualificado: 0, perdido: 0 }
+  );
 
   useEffect(() => {
     fetchContacts();
@@ -54,7 +87,7 @@ function App() {
       .eq('id', conversationId);
 
     if (error) {
-      throw new Error('No se pudo actualizar la conversación.');
+      throw new Error('No se pudo actualizar la conversacion.');
     }
   };
 
@@ -68,7 +101,7 @@ function App() {
       .limit(1);
 
     if (error) {
-      throw new Error('No se pudo consultar la conversación en Supabase.');
+      throw new Error('No se pudo consultar la conversacion en Supabase.');
     }
 
     if (data && data.length > 0) {
@@ -88,7 +121,7 @@ function App() {
       .single();
 
     if (createError) {
-      throw new Error('No se pudo crear la conversación en Supabase.');
+      throw new Error('No se pudo crear la conversacion en Supabase.');
     }
 
     return createdConversation;
@@ -101,7 +134,7 @@ function App() {
 
     const contact = contacts.find((item) => item.id === contactId);
     if (!contact) {
-      setActionError('No se encontró el contacto seleccionado.');
+      setActionError('No se encontro el contacto seleccionado.');
       return;
     }
 
@@ -146,7 +179,7 @@ function App() {
 
   const handleDeleteSelectedContact = async () => {
     if (!selectedContact) {
-      setActionError('No hay ningún contacto seleccionado para eliminar.');
+      setActionError('No hay ningun contacto seleccionado para eliminar.');
       return;
     }
 
@@ -172,7 +205,7 @@ function App() {
 
   const handleDeleteChat = async () => {
     if (!selectedContactId || !selectedContact) {
-      setActionError('No hay ningún contacto seleccionado.');
+      setActionError('No hay ningun contacto seleccionado.');
       return;
     }
 
@@ -184,7 +217,7 @@ function App() {
       return;
     }
 
-    const confirmed = window.confirm('¿Seguro que quieres eliminar este chat?');
+    const confirmed = window.confirm('Seguro que quieres eliminar este chat?');
     if (!confirmed) {
       return;
     }
@@ -238,7 +271,7 @@ function App() {
       .limit(1);
 
     if (error) {
-      setActionError('No se pudo cargar la conversación desde Supabase.');
+      setActionError('No se pudo cargar la conversacion desde Supabase.');
       return;
     }
 
@@ -278,7 +311,7 @@ function App() {
         activeConversation = await ensureConversation(selectedContactId);
         setConversation(activeConversation);
       } catch (error) {
-        setActionError(error.message || 'No se pudo crear la conversación para este contacto.');
+        setActionError(error.message || 'No se pudo crear la conversacion para este contacto.');
         return;
       }
     }
@@ -328,7 +361,7 @@ function App() {
         activeConversation = await ensureConversation(selectedContact.id);
         setConversation(activeConversation);
       } catch (error) {
-        setActionError(error.message || 'No se pudo preparar la conversación para simular mensajes.');
+        setActionError(error.message || 'No se pudo preparar la conversacion para simular mensajes.');
         return;
       }
     }
@@ -369,7 +402,7 @@ function App() {
 
     const normalizedWhatsappNumber = normalizeWhatsappNumber(whatsappNumber);
     if (!isValidWhatsappNumber(normalizedWhatsappNumber)) {
-      setContactError('El número debe estar en formato internacional válido, por ejemplo +34604923459.');
+      setContactError('El numero debe estar en formato internacional valido, por ejemplo +34604923459.');
       return false;
     }
 
@@ -388,7 +421,7 @@ function App() {
 
     if (error) {
       if (error.code === '23505') {
-        setContactError('Ya existe un contacto con ese número de WhatsApp.');
+        setContactError('Ya existe un contacto con ese numero de WhatsApp.');
       } else {
         setContactError('No se pudo crear el contacto en Supabase.');
       }
@@ -402,14 +435,16 @@ function App() {
       setActionInfo('Contacto creado correctamente en Supabase.');
       return true;
     } catch (supabaseError) {
-      setActionError(supabaseError.message || 'El contacto se creó en Supabase, pero no se pudo abrir su conversación.');
+      setActionError(
+        supabaseError.message || 'El contacto se creo en Supabase, pero no se pudo abrir su conversacion.'
+      );
       await fetchContacts();
       return true;
     }
   };
 
   const handleDeleteContact = async (contactId) => {
-    const confirmed = window.confirm('¿Seguro que quieres eliminar este contacto?');
+    const confirmed = window.confirm('Seguro que quieres eliminar este contacto?');
     if (!confirmed) {
       return false;
     }
@@ -473,46 +508,61 @@ function App() {
     <div className="App">
       <header className="App-header">
         <div className="App-headerContent">
-          <h1>CRM de WhatsApp</h1>
+          <div className="App-headerTitleGroup">
+            <h1>CRM de WhatsApp</h1>
+            <button
+              type="button"
+              className="header-nav-btn"
+              onClick={() => setActiveView(activeView === 'crm' ? 'stats' : 'crm')}
+            >
+              {activeView === 'crm' ? 'Estadisticas' : 'Volver al CRM'}
+            </button>
+          </div>
           <img className="App-headerLogo" src={winowinLogo} alt="Logo de WinoWin" />
         </div>
       </header>
-      <div className="App-main">
-        <ContactList
-          contacts={contacts}
-          onContactSelect={handleContactSelect}
-          onCreateContact={handleCreateContact}
-          onDeleteContact={handleDeleteContact}
-          onUpdateContactStatus={handleUpdateContactStatus}
-          selectedId={selectedContactId}
-          errorMessage={contactError}
-        />
-        {selectedContactId ? (
-          <ConversationView
-            conversation={conversation}
-            messages={messages}
-            newMessage={newMessage}
-            onMessageChange={(e) => setNewMessage(e.target.value)}
-            onSendMessage={handleSendMessage}
-            onRefresh={handleRefreshCurrentView}
-            onDeleteChat={handleDeleteChat}
-            onDeleteContact={handleDeleteSelectedContact}
-            onCloseConversation={handleCloseConversation}
-            onSimulateIncoming={handleSimulateIncoming}
-            simulateMessage={simulateMessage}
-            onSimulateMessageChange={(e) => setSimulateMessage(e.target.value)}
-            selectedContact={selectedContact}
-            selectedContactId={selectedContactId}
-            actionError={actionError}
-            actionInfo={actionInfo}
-            isRefreshing={isRefreshing}
+      {activeView === 'crm' ? (
+        <div className="App-main">
+          <ContactList
+            contacts={contacts}
+            onContactSelect={handleContactSelect}
+            onCreateContact={handleCreateContact}
+            onDeleteContact={handleDeleteContact}
+            onUpdateContactStatus={handleUpdateContactStatus}
+            selectedId={selectedContactId}
+            errorMessage={contactError}
           />
-        ) : (
-          <div className="conversation-view conversation-empty">
-            <p>Selecciona un contacto para ver la conversación.</p>
-          </div>
-        )}
-      </div>
+          {selectedContactId ? (
+            <ConversationView
+              conversation={conversation}
+              messages={messages}
+              newMessage={newMessage}
+              onMessageChange={(e) => setNewMessage(e.target.value)}
+              onSendMessage={handleSendMessage}
+              onRefresh={handleRefreshCurrentView}
+              onDeleteChat={handleDeleteChat}
+              onDeleteContact={handleDeleteSelectedContact}
+              onCloseConversation={handleCloseConversation}
+              onSimulateIncoming={handleSimulateIncoming}
+              simulateMessage={simulateMessage}
+              onSimulateMessageChange={(e) => setSimulateMessage(e.target.value)}
+              selectedContact={selectedContact}
+              selectedContactId={selectedContactId}
+              actionError={actionError}
+              actionInfo={actionInfo}
+              isRefreshing={isRefreshing}
+            />
+          ) : (
+            <div className="conversation-view conversation-empty">
+              <p>Selecciona un contacto para ver la conversacion.</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="App-main App-main-stats">
+          <StatsView stats={stats} onBack={() => setActiveView('crm')} />
+        </div>
+      )}
     </div>
   );
 }
