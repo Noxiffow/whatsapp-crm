@@ -32,7 +32,7 @@ button {
 }
 
 .App-header {
-  padding: 24px 32px;
+  padding: 16px 32px 14px;
   background: linear-gradient(90deg, #25D366, #128C7E);
   color: #ffffff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -54,9 +54,10 @@ button {
 
 .App-header h1 {
   margin: 0;
-  font-size: clamp(28px, 4vw, 42px);
+  font-size: clamp(24px, 3.2vw, 34px);
   font-weight: 700;
   letter-spacing: -0.03em;
+  line-height: 1.05;
 }
 
 .App-headerLogo {
@@ -1042,7 +1043,7 @@ button {
 
 @media (max-width: 760px) {
   .App-header {
-    padding: 20px 24px;
+    padding: 14px 24px 12px;
   }
 
   .App-headerContent {

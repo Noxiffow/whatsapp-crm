@@ -509,7 +509,7 @@ function App() {
       <header className="App-header">
         <div className="App-headerContent">
           <div className="App-headerTitleGroup">
-            <h1>CRM de WhatsApp</h1>
+            <h1>ChatPanel CRM</h1>
             <button
               type="button"
               className="header-nav-btn"
