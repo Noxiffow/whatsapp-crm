@@ -17,6 +17,7 @@ const ContactList = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingContactId, setDeletingContactId] = useState(null);
   const [updatingStatusId, setUpdatingStatusId] = useState(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const getContactStatus = (contact) =>
     String(contact.lead_status ?? contact.estado ?? contact.status ?? '').toLowerCase();
@@ -106,6 +107,7 @@ const ContactList = ({
         setLeadStatus('nuevo');
         setSearchTerm('');
         setSelectedStatusFilter('todos');
+        setIsCreateModalOpen(false);
       }
     } finally {
       setIsSubmitting(false);
@@ -148,29 +150,16 @@ const ContactList = ({
   return (
     <div className="contact-list">
       <h2>Contactos</h2>
-      <form className="contact-form" onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Nombre del contacto"
-        />
-        <input
-          type="text"
-          value={whatsappNumber}
-          onChange={(e) => setWhatsappNumber(e.target.value)}
-          placeholder="+34..."
-        />
-        <select value={leadStatus} onChange={(e) => setLeadStatus(e.target.value)}>
-          <option value="nuevo">Nuevo</option>
-          <option value="contactado">Contactado</option>
-          <option value="cualificado">Cualificado</option>
-          <option value="perdido">Perdido</option>
-        </select>
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Creando...' : 'Crear contacto'}
+      <div className="contacts-toolbar">
+        <button
+          type="button"
+          className="contacts-toolbar-btn contacts-toolbar-btn-primary"
+          onClick={() => setIsCreateModalOpen(true)}
+        >
+          Añadir contacto
         </button>
-      </form>
+        <div className="contacts-toolbar-indicator">Total: {statusCounts.todos}</div>
+      </div>
       {errorMessage ? <p className="contact-form-error">{errorMessage}</p> : null}
       <input
         type="text"
@@ -191,9 +180,55 @@ const ContactList = ({
           </option>
         ))}
       </select>
-      <div className={`contact-status-summary contact-status-summary-${selectedStatusOption.value}`}>
-        {statusCountTextMap[selectedStatusOption.value]}
-      </div>
+      {isCreateModalOpen ? (
+        <div className="contact-modal-backdrop" onClick={() => setIsCreateModalOpen(false)}>
+          <div className="contact-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="contact-modal-header">
+              <h3>Añadir contacto</h3>
+              <button
+                type="button"
+                className="contact-modal-close"
+                onClick={() => setIsCreateModalOpen(false)}
+                aria-label="Cerrar modal"
+              >
+                ×
+              </button>
+            </div>
+            <form className="contact-form contact-modal-form" onSubmit={handleSubmit}>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Nombre del contacto"
+              />
+              <input
+                type="text"
+                value={whatsappNumber}
+                onChange={(e) => setWhatsappNumber(e.target.value)}
+                placeholder="+34..."
+              />
+              <select value={leadStatus} onChange={(e) => setLeadStatus(e.target.value)}>
+                <option value="nuevo">Nuevo</option>
+                <option value="contactado">Contactado</option>
+                <option value="cualificado">Cualificado</option>
+                <option value="perdido">Perdido</option>
+              </select>
+              <div className="contact-modal-actions">
+                <button
+                  type="button"
+                  className="contact-modal-cancel"
+                  onClick={() => setIsCreateModalOpen(false)}
+                >
+                  Cancelar
+                </button>
+                <button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? 'Creando...' : 'Crear contacto'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
       <div className="contacts-list-scroll">
         <ul>
           {filteredContacts.length === 0 ? (
