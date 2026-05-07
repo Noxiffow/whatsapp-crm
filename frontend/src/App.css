@@ -48,7 +48,8 @@ button {
 .App-headerTitleGroup {
   display: flex;
   align-items: center;
-  gap: 16px;
+  column-gap: 72px;
+  row-gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -71,7 +72,7 @@ button {
   cursor: pointer;
   padding: 10px 16px;
   border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 999px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.16);
   color: #ffffff;
   font-weight: 700;
@@ -618,11 +619,13 @@ button {
   color: #dc2626;
   font-size: 16px;
   font-weight: 600;
+  box-shadow: none;
 }
 
 .delete-contact-btn:hover {
   background: transparent;
   border-color: transparent;
+  box-shadow: none;
 }
 
 .delete-btn {
@@ -1052,6 +1055,8 @@ button {
 
   .App-headerTitleGroup {
     align-items: flex-start;
+    column-gap: 36px;
+    row-gap: 10px;
   }
 
   .App-headerLogo {

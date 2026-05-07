@@ -28,8 +28,8 @@ function StatsView({ stats, onBack }) {
     <section className="stats-view">
       <div className="stats-view-header">
         <div>
-          <h2>Estadisticas</h2>
-          <p className="stats-view-subtitle">Resumen de contactos creados durante los ultimos 30 dias.</p>
+          <h2>Estadísticas</h2>
+          <p className="stats-view-subtitle">Resumen de contactos creados durante los últimos 30 días.</p>
         </div>
         <button type="button" className="stats-nav-btn" onClick={onBack}>
           Volver al CRM
@@ -40,7 +40,7 @@ function StatsView({ stats, onBack }) {
         <article className="stats-card stats-card-total">
           <span className="stats-card-label">Total de contactos</span>
           <strong className="stats-card-value">{stats.total}</strong>
-          <span className="stats-card-helper">Creados en los ultimos 30 dias</span>
+          <span className="stats-card-helper">Creados en los últimos 30 días</span>
         </article>
         <article className="stats-card stats-card-nuevo">
           <span className="stats-card-label">Nuevo</span>
@@ -61,7 +61,7 @@ function StatsView({ stats, onBack }) {
       </div>
 
       <div className="stats-chart-card">
-        <h3>Grafico por estado</h3>
+        <h3>Gráfico por estado</h3>
         <div className="stats-bars">
           {bars.map((bar) => (
             <div key={bar.key} className="stats-bar-row">

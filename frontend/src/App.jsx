@@ -21,7 +21,7 @@ function App() {
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [simulateMessage, setSimulateMessage] = useState('Hola, escribo para pedir informacion.');
+  const [simulateMessage, setSimulateMessage] = useState('Hola, escribo para pedir información.');
   const [contactError, setContactError] = useState('');
   const [actionError, setActionError] = useState('');
   const [actionInfo, setActionInfo] = useState('');
@@ -87,7 +87,7 @@ function App() {
       .eq('id', conversationId);
 
     if (error) {
-      throw new Error('No se pudo actualizar la conversacion.');
+      throw new Error('No se pudo actualizar la conversación.');
     }
   };
 
@@ -101,7 +101,7 @@ function App() {
       .limit(1);
 
     if (error) {
-      throw new Error('No se pudo consultar la conversacion en Supabase.');
+      throw new Error('No se pudo consultar la conversación en Supabase.');
     }
 
     if (data && data.length > 0) {
@@ -121,7 +121,7 @@ function App() {
       .single();
 
     if (createError) {
-      throw new Error('No se pudo crear la conversacion en Supabase.');
+      throw new Error('No se pudo crear la conversación en Supabase.');
     }
 
     return createdConversation;
@@ -134,7 +134,7 @@ function App() {
 
     const contact = contacts.find((item) => item.id === contactId);
     if (!contact) {
-      setActionError('No se encontro el contacto seleccionado.');
+      setActionError('No se encontró el contacto seleccionado.');
       return;
     }
 
@@ -174,7 +174,7 @@ function App() {
 
   const handleDeleteSelectedContact = async () => {
     if (!selectedContact) {
-      setActionError('No hay ningun contacto seleccionado para eliminar.');
+      setActionError('No hay ningún contacto seleccionado para eliminar.');
       return;
     }
 
@@ -200,7 +200,7 @@ function App() {
 
   const handleDeleteChat = async () => {
     if (!selectedContactId || !selectedContact) {
-      setActionError('No hay ningun contacto seleccionado.');
+      setActionError('No hay ningún contacto seleccionado.');
       return;
     }
 
@@ -212,7 +212,7 @@ function App() {
       return;
     }
 
-    const confirmed = window.confirm('Seguro que quieres eliminar este chat?');
+    const confirmed = window.confirm('¿Seguro que quieres eliminar este chat?');
     if (!confirmed) {
       return;
     }
@@ -266,7 +266,7 @@ function App() {
       .limit(1);
 
     if (error) {
-      setActionError('No se pudo cargar la conversacion desde Supabase.');
+      setActionError('No se pudo cargar la conversación desde Supabase.');
       return;
     }
 
@@ -315,16 +315,35 @@ function App() {
         }),
       });
 
-      const result = await response.json();
+      const responseText = await response.text();
+      let result = {};
+      let hasValidJson = false;
+
+      if (responseText) {
+        try {
+          result = JSON.parse(responseText);
+          hasValidJson = true;
+        } catch (parseError) {
+          console.error('Respuesta no válida al enviar mensaje:', parseError, responseText);
+        }
+      } else {
+        console.error('Respuesta vacía al enviar mensaje.');
+      }
 
       if (!response.ok) {
-        throw new Error(result.error || 'No se pudo enviar el mensaje con Meta.');
+        throw new Error(
+          result.error ||
+          (hasValidJson
+            ? 'No se pudo enviar el mensaje con Meta.'
+            : 'No se pudo contactar correctamente con el endpoint de envío.')
+        );
       }
 
       setNewMessage('');
       setActionInfo('Mensaje enviado correctamente por Meta.');
       await fetchConversation(selectedContactId);
     } catch (error) {
+      console.error('Error enviando mensaje desde frontend:', error);
       setActionError(error.message || 'No se pudo enviar el mensaje.');
     }
   };
@@ -341,7 +360,7 @@ function App() {
         activeConversation = await ensureConversation(selectedContact.id);
         setConversation(activeConversation);
       } catch (error) {
-        setActionError(error.message || 'No se pudo preparar la conversacion para simular mensajes.');
+        setActionError(error.message || 'No se pudo preparar la conversación para simular mensajes.');
         return;
       }
     }
@@ -382,7 +401,7 @@ function App() {
 
     const normalizedWhatsappNumber = normalizeWhatsappNumber(whatsappNumber);
     if (!isValidWhatsappNumber(normalizedWhatsappNumber)) {
-      setContactError('El numero debe estar en formato internacional valido, por ejemplo +34604923459.');
+      setContactError('El número debe estar en formato internacional válido, por ejemplo +34604923459.');
       return false;
     }
 
@@ -401,7 +420,7 @@ function App() {
 
     if (error) {
       if (error.code === '23505') {
-        setContactError('Ya existe un contacto con ese numero de WhatsApp.');
+        setContactError('Ya existe un contacto con ese número de WhatsApp.');
       } else {
         setContactError('No se pudo crear el contacto en Supabase.');
       }
@@ -416,7 +435,7 @@ function App() {
       return true;
     } catch (supabaseError) {
       setActionError(
-        supabaseError.message || 'El contacto se creo en Supabase, pero no se pudo abrir su conversacion.'
+        supabaseError.message || 'El contacto se creó en Supabase, pero no se pudo abrir su conversación.'
       );
       await fetchContacts();
       return true;
@@ -424,7 +443,7 @@ function App() {
   };
 
   const handleDeleteContact = async (contactId) => {
-    const confirmed = window.confirm('Seguro que quieres eliminar este contacto?');
+    const confirmed = window.confirm('¿Seguro que quieres eliminar este contacto?');
     if (!confirmed) {
       return false;
     }
@@ -490,13 +509,15 @@ function App() {
         <div className="App-headerContent">
           <div className="App-headerTitleGroup">
             <h1>ChatPanel CRM</h1>
-            <button
-              type="button"
-              className="header-nav-btn"
-              onClick={() => setActiveView(activeView === 'crm' ? 'stats' : 'crm')}
-            >
-              {activeView === 'crm' ? 'Estadisticas' : 'Volver al CRM'}
-            </button>
+            {activeView === 'crm' ? (
+              <button
+                type="button"
+                className="header-nav-btn"
+                onClick={() => setActiveView('stats')}
+              >
+                Estadísticas
+              </button>
+            ) : null}
           </div>
           <img className="App-headerLogo" src={winowinLogo} alt="Logo de WinoWin" />
         </div>
@@ -534,7 +555,7 @@ function App() {
             />
           ) : (
             <div className="conversation-view conversation-empty">
-              <p>Selecciona un contacto para ver la conversacion.</p>
+              <p>Selecciona un contacto para ver la conversación.</p>
             </div>
           )}
         </div>
