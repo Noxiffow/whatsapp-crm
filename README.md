@@ -12,12 +12,14 @@ Actualmente permite:
 - abrir o generar conversaciones asociadas a cada cliente
 - registrar mensajes entrantes y salientes
 - validar el flujo principal del CRM con datos simulados
+- recibir mensajes reales desde WhatsApp Cloud API
+- responder desde el CRM a WhatsApp mediante Meta
 
 ## Estado Actual
 
-El proyecto se encuentra en fase MVP con infraestructura en Supabase.
+El proyecto se encuentra en fase MVP funcional con infraestructura en Supabase, despliegue en Vercel e integracion real con Meta WhatsApp Cloud API mediante numero de prueba.
 
-**Estado a 4 de mayo de 2026:**
+**Estado a 7 de mayo de 2026:**
 
 ✅ **Implementado:**
 - Contactos, conversaciones y mensajes en Supabase
@@ -26,9 +28,18 @@ El proyecto se encuentra en fase MVP con infraestructura en Supabase.
 - Eliminación segura vía RPC (`delete_contact_cascade`)
 - Actualización de estado lead vía RPC (`update_contact_lead_status`)
 - Frontend operativo con Supabase client
+- Vista interna de estadisticas del CRM
+- Despliegue Preview en Vercel por rama
+- Webhook real de Meta verificado
+- Recepcion de mensajes entrantes desde WhatsApp real
+- Envio de respuestas desde el CRM a WhatsApp real
+- Token permanente de Meta mediante usuario de sistema
 
-⏳ **En progreso:**
-- Despliegue en Vercel
+⏳ **Pendiente post-MVP / produccion:**
+- Publicacion/revision de la app en Meta si se quiere uso fuera de modo prueba
+- Verificacion empresarial completa si Meta la exige para produccion
+- Configuracion de un numero real de WhatsApp Business
+- Autenticacion de usuarios del CRM, si el uso deja de ser demo controlada
 
 ## Stack
 
@@ -114,7 +125,30 @@ Opcionalmente, para aislar del todo la capa servidor, tambien se pueden definir:
 
 - La base tecnica de Meta ya esta versionada.
 - Sigue disponible el simulador como apoyo para testing.
-- Falta terminar la configuracion en Meta Developer para validacion real del webhook y envio con numero de prueba.
+- El webhook de Meta esta validado en Vercel.
+- El campo `messages` esta suscrito en Meta.
+- El flujo real WhatsApp -> CRM -> WhatsApp ha sido validado con numero de prueba.
+- `META_ACCESS_TOKEN` usa un token permanente generado con usuario de sistema de Meta Business.
+
+### URL de callback configurada
+
+```text
+https://whatsapp-crm-git-jonathan-backend-noxiffows-projects.vercel.app/api/meta/webhook
+```
+
+### Checklist MVP
+
+- [x] Crear y listar contactos.
+- [x] Buscar contactos por nombre o telefono.
+- [x] Cambiar estado comercial del lead.
+- [x] Eliminar contactos de forma segura mediante RPC.
+- [x] Ver conversaciones y mensajes asociados.
+- [x] Simular mensajes entrantes para pruebas.
+- [x] Recibir mensajes reales desde WhatsApp.
+- [x] Enviar mensajes reales desde el CRM.
+- [x] Integrar frontend de Galya con backend de Meta en `jonathan/backend`.
+- [x] Desplegar version conjunta en Vercel Preview.
+- [ ] Publicar app en Meta y configurar numero real de produccion.
 
 ## Seguridad
 
