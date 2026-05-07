@@ -31,10 +31,13 @@ button {
   min-height: 100vh;
   height: 100vh;
   background: #f5f7fb;
+  display: flex;
+  flex-direction: column;
 }
 
 .App-header {
-  padding: 16px 32px 14px;
+  flex-shrink: 0;
+  padding: 12px 32px 10px;
   background: linear-gradient(90deg, #25D366, #128C7E);
   color: #ffffff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -101,10 +104,16 @@ button {
   grid-template-columns: minmax(300px, 360px) 1fr;
   gap: 24px;
   width: min(1240px, calc(100% - 32px));
-  margin: 24px auto;
-  height: calc(100vh - 122px);
+  margin: 16px auto;
+  flex: 1;
   min-height: 0;
   align-items: stretch;
+}
+
+.App-main:not(.App-main-stats) {
+  height: calc(100vh - 116px);
+  max-height: calc(100vh - 116px);
+  overflow: hidden;
 }
 
 .App-main-stats {
@@ -1166,7 +1175,7 @@ button {
 
 @media (max-width: 760px) {
   .App-header {
-    padding: 14px 24px 12px;
+    padding: 10px 24px 8px;
   }
 
   .App-headerContent {
@@ -1187,7 +1196,9 @@ button {
     grid-template-columns: 1fr;
     width: min(100%, calc(100% - 24px));
     margin: 16px auto 24px;
+    flex: none;
     height: auto;
+    max-height: none;
     min-height: 0;
   }
 
