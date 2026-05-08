@@ -58,6 +58,19 @@ async function findOrCreateContactByPhone(whatsappNumber, preferredName) {
     .single();
 
   if (createError) {
+    if (createError.code === '23505') {
+      const { data: contactAfterRace, error: raceError } = await supabaseServer
+        .from('contactos')
+        .select('*')
+        .eq('whatsapp_number', normalizedPhone)
+        .limit(1)
+        .maybeSingle();
+
+      if (!raceError && contactAfterRace) {
+        return contactAfterRace;
+      }
+    }
+
     throw new Error('No se pudo crear el contacto automáticamente en Supabase.');
   }
 
@@ -134,6 +147,51 @@ async function storeMessage({ conversationId, direction, content, timestamp, isR
   return message;
 }
 
+async function updateMessageDeliveryStatus({ messageId, deliveryStatus, metaMessageId, metaErrorCode, metaErrorMessage }) {
+  const { data: message, error: statusError } = await supabaseServer
+    .from('mensajes')
+    .update({ delivery_status: deliveryStatus })
+    .eq('id', messageId)
+    .select('*')
+    .single();
+
+  if (statusError) {
+    throw new Error('No se pudo actualizar el estado del mensaje en Supabase.');
+  }
+
+  const metadataUpdate = {};
+
+  if (metaMessageId) {
+    metadataUpdate.meta_message_id = metaMessageId;
+  }
+
+  if (metaErrorCode) {
+    metadataUpdate.meta_error_code = String(metaErrorCode);
+  }
+
+  if (metaErrorMessage) {
+    metadataUpdate.meta_error_message = metaErrorMessage;
+  }
+
+  if (Object.keys(metadataUpdate).length === 0) {
+    return message;
+  }
+
+  const { data: messageWithMeta, error: metadataError } = await supabaseServer
+    .from('mensajes')
+    .update(metadataUpdate)
+    .eq('id', messageId)
+    .select('*')
+    .single();
+
+  if (metadataError) {
+    console.warn('No se pudieron guardar metadatos de Meta en el mensaje:', metadataError.message);
+    return message;
+  }
+
+  return messageWithMeta;
+}
+
 module.exports = {
   normalizeWhatsappNumber,
   normalizeWhatsappNumberForMeta,
@@ -141,4 +199,5 @@ module.exports = {
   findOrCreateContactByPhone,
   ensureConversation,
   storeMessage,
+  updateMessageDeliveryStatus,
 };

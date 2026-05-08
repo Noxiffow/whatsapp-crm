@@ -18,6 +18,21 @@ const ConversationView = ({
   actionInfo,
   isRefreshing,
 }) => {
+  const getDeliveryLabel = (msg) => {
+    if (msg.direction !== 'outgoing') {
+      return null;
+    }
+
+    const labels = {
+      pending: 'pendiente',
+      sent: 'enviado',
+      delivered: 'entregado',
+      error: 'error',
+    };
+
+    return labels[msg.delivery_status] || msg.delivery_status || null;
+  };
+
   return (
     <div className="conversation-view">
       <button
@@ -72,6 +87,7 @@ const ConversationView = ({
                 <div className="msg-meta">
                   {msg.direction === 'incoming' ? 'Entrante' : 'Saliente'} ·
                   {new Date(msg.timestamp).toLocaleTimeString()} ·
+                  {getDeliveryLabel(msg) ? ` ${getDeliveryLabel(msg)} ·` : ''}
                   {msg.is_read && msg.direction === 'incoming' && '(leído)'}
                 </div>
               </div>
