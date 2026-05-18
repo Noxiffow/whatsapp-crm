@@ -21,6 +21,7 @@ function App() {
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const [simulateMessage, setSimulateMessage] = useState('Hola, escribo para pedir información.');
   const [contactError, setContactError] = useState('');
   const [actionError, setActionError] = useState('');
@@ -296,12 +297,13 @@ function App() {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedContactId || !selectedContact) return;
+    if (isSending || !newMessage.trim() || !selectedContactId || !selectedContact) return;
     setActionError('');
     setActionInfo('');
     const messageToSend = newMessage.trim();
 
     try {
+      setIsSending(true);
       const response = await fetch('/api/meta/send-message', {
         method: 'POST',
         headers: {
@@ -345,6 +347,8 @@ function App() {
     } catch (error) {
       console.error('Error enviando mensaje desde frontend:', error);
       setActionError(error.message || 'No se pudo enviar el mensaje.');
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -552,6 +556,7 @@ function App() {
               actionError={actionError}
               actionInfo={actionInfo}
               isRefreshing={isRefreshing}
+              isSending={isSending}
             />
           ) : (
             <div className="conversation-view conversation-empty">

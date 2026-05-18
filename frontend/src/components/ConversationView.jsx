@@ -17,7 +17,15 @@ const ConversationView = ({
   actionError,
   actionInfo,
   isRefreshing,
+  isSending,
 }) => {
+  const handleMessageKeyDown = (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      onSendMessage(event);
+    }
+  };
+
   const getDeliveryLabel = (msg) => {
     if (msg.direction !== 'outgoing') {
       return null;
@@ -100,10 +108,14 @@ const ConversationView = ({
           type="text"
           value={newMessage}
           onChange={onMessageChange}
+          onKeyDown={handleMessageKeyDown}
           placeholder="Escribe un mensaje..."
           className="msg-input"
+          disabled={isSending}
         />
-        <button type="submit" className="msg-btn">Enviar</button>
+        <button type="submit" className="msg-btn" disabled={isSending}>
+          {isSending ? 'Enviando...' : 'Enviar'}
+        </button>
       </form>
     </div>
   );
