@@ -1,0 +1,30 @@
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+backend/.venv/
+backend/.venv_codex/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Frontend Astro
+frontend-astro/node_modules/
+frontend-astro/dist/
+
+# Local data
+database.db
+*.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Local notes not meant for sharing
+HANDOFF_*.md
+
+# External helper tools
+tools/ui-ux-pro-max-skill/

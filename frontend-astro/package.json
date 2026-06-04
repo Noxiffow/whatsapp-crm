@@ -1,0 +1,17 @@
+{
+  "name": "crm-whatsapp-astro",
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/react": "^4.2.0",
+    "@supabase/supabase-js": "^2.105.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "astro": "^5.0.0"
+  }
+}
