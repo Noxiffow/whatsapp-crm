@@ -500,7 +500,7 @@ function App() {
 
     setContacts((currentContacts) =>
       currentContacts.map((contact) =>
-        contact.id === contactId ? { ...contact, lead_status: leadStatus } : contact
+        String(contact.id) === String(contactId) ? { ...contact, lead_status: leadStatus } : contact
       )
     );
     setActionInfo('Estado del contacto actualizado.');
