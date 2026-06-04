@@ -343,7 +343,6 @@ function App() {
       }
 
       setNewMessage('');
-      setActionInfo('Mensaje enviado correctamente por Meta.');
       await fetchConversation(selectedContactId);
     } catch (error) {
       console.error('Error enviando mensaje desde frontend:', error);
@@ -395,7 +394,7 @@ function App() {
       return;
     }
 
-    setActionInfo('Mensaje entrante simulado correctamente.');
+    setActionInfo('');
     await fetchConversation(selectedContact.id);
   };
 
@@ -583,7 +582,6 @@ function App() {
               selectedContact={selectedContact}
               selectedContactId={selectedContactId}
               actionError={actionError}
-              actionInfo={actionInfo}
               isRefreshing={isRefreshing}
               isSending={isSending}
               onSaveNote={handleSaveNote}

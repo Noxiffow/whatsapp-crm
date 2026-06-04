@@ -15,18 +15,19 @@ const ConversationView = ({
   onSimulateMessageChange,
   selectedContact,
   actionError,
-  actionInfo,
   isRefreshing,
   isSending,
   onSaveNote,
 }) => {
   const [localNote, setLocalNote] = useState('');
   const [noteSaved, setNoteSaved] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
   const noteTimerRef = useRef(null);
 
   useEffect(() => {
     setLocalNote(selectedContact?.notes || '');
     setNoteSaved(false);
+    setNotesOpen(false);
   }, [selectedContact]);
 
   const handleNoteBlur = async () => {
@@ -50,19 +51,12 @@ const ConversationView = ({
   };
 
   const getDeliveryLabel = (msg) => {
-    if (msg.direction !== 'outgoing') {
-      return null;
-    }
-
-    const labels = {
-      pending: 'pendiente',
-      sent: 'enviado',
-      delivered: 'entregado',
-      error: 'error',
-    };
-
+    if (msg.direction !== 'outgoing') return null;
+    const labels = { pending: 'pendiente', sent: 'enviado', delivered: 'entregado', error: 'error' };
     return labels[msg.delivery_status] || msg.delivery_status || null;
   };
+
+  const hasNotes = (selectedContact?.notes || '').trim().length > 0;
 
   return (
     <div className="conversation-view">
@@ -84,8 +78,12 @@ const ConversationView = ({
           ) : null}
         </div>
         <div className="conversation-actions">
-          <button type="button" className="refresh-btn" onClick={onRefresh} disabled={isRefreshing}>
-            {isRefreshing ? 'Actualizando...' : 'Refrescar'}
+          <button type="button" className="refresh-btn" onClick={onRefresh} disabled={isRefreshing} title="Refrescar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={isRefreshing ? 'spin' : ''}>
+              <polyline points="23 4 23 10 17 10" />
+              <polyline points="1 20 1 14 7 14" />
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+            </svg>
           </button>
           <button type="button" className="delete-chat-btn" onClick={onDeleteChat}>
             Eliminar chat
@@ -95,38 +93,37 @@ const ConversationView = ({
           </button>
         </div>
       </div>
-      {actionError ? <div className="feedback feedback-error">{actionError}</div> : null}
-      {!actionError && actionInfo ? <div className="feedback feedback-info">{actionInfo}</div> : null}
-      {conversation ? (
+      {actionError ? (
+        <div className="feedback feedback-error">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink: 0, marginTop: 1}}>
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <span>{actionError}</span>
+        </div>
+      ) : null}
+      {selectedContact ? (
         <div className="conversation-contact-info">
-          <strong>Contacto ID:</strong> {conversation.contacto_id}<br />
-          <strong>Activa:</strong> {conversation.is_active ? 'Sí' : 'No'}<br />
+          <span className="contact-info-pill">ID: {selectedContact.id}</span>
+          <span className="contact-info-pill">{conversation?.is_active ? 'Activa' : 'Inactiva'}</span>
+          <button
+            type="button"
+            className={`notes-toggle ${notesOpen ? 'notes-toggle-open' : ''} ${hasNotes ? 'notes-toggle-filled' : ''}`}
+            onClick={() => setNotesOpen(!notesOpen)}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            Notas{hasNotes ? ' (' + (selectedContact.notes || '').trim().length + ')' : ''}
+          </button>
         </div>
       ) : (
         <div className="conversation-contact-info empty-state">
-          No hay conversación activa para este contacto. Escribe el primer mensaje para iniciarla.
+          No hay conversación activa. Escribe el primer mensaje para iniciarla.
         </div>
       )}
-      <div className="messages-container">
-        <div className="messages-list messages">
-          {messages.length === 0 ? (
-            <p className="empty-messages">Todavía no hay mensajes en esta conversación.</p>
-          ) : (
-            messages.map((msg) => (
-              <div key={msg.id} className={`msg ${msg.direction} msg-animated`}>
-                <div className="msg-content">{msg.content}</div>
-                <div className="msg-meta">
-                  {msg.direction === 'incoming' ? 'Entrante' : 'Saliente'} ·
-                  {new Date(msg.timestamp).toLocaleTimeString()} ·
-                  {getDeliveryLabel(msg) ? ` ${getDeliveryLabel(msg)} ·` : ''}
-                  {msg.is_read && msg.direction === 'incoming' && '(leído)'}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-      {selectedContact ? (
+      {notesOpen && selectedContact ? (
         <div className="notes-section">
           <div className="notes-header">
             <span className="notes-label">Notas internas</span>
@@ -142,6 +139,28 @@ const ConversationView = ({
           />
         </div>
       ) : null}
+      <div className="messages-container">
+        <div className="messages-list messages">
+          {messages.length === 0 ? (
+            <p className="empty-messages">Todavía no hay mensajes en esta conversación.</p>
+          ) : (
+            messages.map((msg) => (
+              <div key={msg.id} className={`msg ${msg.direction} msg-animated`}>
+                <div className="msg-content">{msg.content}</div>
+                <div className="msg-meta">
+                  {msg.direction === 'incoming' ? 'Entrante' : 'Saliente'} ·
+                  {new Date(msg.timestamp).toLocaleTimeString()} ·
+                  {getDeliveryLabel(msg) ? ` ${getDeliveryLabel(msg)} ·` : ''}
+                  {msg.is_read && msg.direction === 'incoming' && '(leído)'}
+                  {msg.delivery_status === 'error' ? (
+                    <span className="msg-error-dot" title="Error al enviar"> ⚠</span>
+                  ) : null}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
       <form className="msg-form" onSubmit={onSendMessage}>
         <input
           type="text"
