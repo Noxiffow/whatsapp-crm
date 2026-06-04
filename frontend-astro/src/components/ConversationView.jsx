@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const ConversationView = ({
   conversation,
@@ -18,7 +18,30 @@ const ConversationView = ({
   actionInfo,
   isRefreshing,
   isSending,
+  onSaveNote,
 }) => {
+  const [localNote, setLocalNote] = useState('');
+  const [noteSaved, setNoteSaved] = useState(false);
+  const noteTimerRef = useRef(null);
+
+  useEffect(() => {
+    setLocalNote(selectedContact?.notes || '');
+    setNoteSaved(false);
+  }, [selectedContact]);
+
+  const handleNoteBlur = async () => {
+    if (!selectedContact || !onSaveNote) return;
+    const trimmed = localNote.trim();
+    if (trimmed === (selectedContact.notes || '').trim()) return;
+
+    const saved = await onSaveNote(selectedContact.id, trimmed);
+    if (saved) {
+      setNoteSaved(true);
+      if (noteTimerRef.current) clearTimeout(noteTimerRef.current);
+      noteTimerRef.current = setTimeout(() => setNoteSaved(false), 2000);
+    }
+  };
+
   const handleMessageKeyDown = (event) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
@@ -103,6 +126,22 @@ const ConversationView = ({
           )}
         </div>
       </div>
+      {selectedContact ? (
+        <div className="notes-section">
+          <div className="notes-header">
+            <span className="notes-label">Notas internas</span>
+            {noteSaved ? <span className="notes-saved">Guardado ✓</span> : null}
+          </div>
+          <textarea
+            className="notes-textarea"
+            value={localNote}
+            onChange={(e) => { setLocalNote(e.target.value); setNoteSaved(false); }}
+            onBlur={handleNoteBlur}
+            placeholder="Notas privadas sobre este contacto..."
+            rows={3}
+          />
+        </div>
+      ) : null}
       <form className="msg-form" onSubmit={onSendMessage}>
         <input
           type="text"

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ContactList from './ContactList';
 import ConversationView from './ConversationView';
 import StatsView from './StatsView';
+import KanbanView from './KanbanView';
 import { supabase } from '../lib/supabase';
 import '../App.css';
 import winowinLogo from '../assets/winowin-logo.svg';
@@ -132,6 +133,7 @@ function App() {
     setSelectedContactId(contactId);
     setActionError('');
     setActionInfo('');
+    setActiveView('crm');
 
     const contact = contacts.find((item) => item.id === contactId);
     if (!contact) {
@@ -507,6 +509,25 @@ function App() {
     return true;
   };
 
+  const handleSaveNote = async (contactId, noteText) => {
+    const { error } = await supabase
+      .from('contactos')
+      .update({ notes: noteText || null })
+      .eq('id', contactId);
+
+    if (error) {
+      setActionError('No se pudo guardar la nota.');
+      return false;
+    }
+
+    setContacts((currentContacts) =>
+      currentContacts.map((contact) =>
+        contact.id === contactId ? { ...contact, notes: noteText || null } : contact
+      )
+    );
+    return true;
+  };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -514,13 +535,22 @@ function App() {
           <div className="App-headerTitleGroup">
             <h1>ChatPanel CRM</h1>
             {activeView === 'crm' ? (
-              <button
-                type="button"
-                className="header-nav-btn"
-                onClick={() => setActiveView('stats')}
-              >
-                Estadísticas
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="header-nav-btn"
+                  onClick={() => setActiveView('kanban')}
+                >
+                  Pipeline
+                </button>
+                <button
+                  type="button"
+                  className="header-nav-btn"
+                  onClick={() => setActiveView('stats')}
+                >
+                  Estadísticas
+                </button>
+              </>
             ) : null}
           </div>
           <img className="App-headerLogo" src={winowinLogo} alt="Logo de WinoWin" />
@@ -557,6 +587,7 @@ function App() {
               actionInfo={actionInfo}
               isRefreshing={isRefreshing}
               isSending={isSending}
+              onSaveNote={handleSaveNote}
             />
           ) : (
             <div className="conversation-view conversation-empty">
@@ -564,9 +595,19 @@ function App() {
             </div>
           )}
         </div>
-      ) : (
+      ) : activeView === 'stats' ? (
         <div className="App-main App-main-stats">
           <StatsView stats={stats} onBack={() => setActiveView('crm')} />
+        </div>
+      ) : (
+        <div className="App-main App-main-stats">
+          <KanbanView
+            contacts={contacts}
+            onUpdateContactStatus={handleUpdateContactStatus}
+            onContactSelect={handleContactSelect}
+            onBack={() => setActiveView('crm')}
+            actionInfo={actionInfo}
+          />
         </div>
       )}
     </div>
