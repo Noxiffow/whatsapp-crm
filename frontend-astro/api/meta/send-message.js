@@ -1,4 +1,4 @@
-const {
+import {
   findOrCreateContactByPhone,
   ensureConversation,
   storeMessage,
@@ -6,7 +6,7 @@ const {
   normalizeWhatsappNumberForMeta,
   isValidWhatsappNumber,
   updateMessageDeliveryStatus,
-} = require('../_lib/contacts');
+} from '../_lib/contacts.js';
 
 const getFriendlyMetaError = (metaError) => {
   const message = metaError?.message || '';
@@ -27,7 +27,7 @@ const getFriendlyMetaError = (metaError) => {
   return message || `Meta rechazó el envío del mensaje.${code}`;
 };
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ ok: false, error: 'Método no permitido.' });

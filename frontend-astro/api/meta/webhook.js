@@ -1,6 +1,6 @@
-const { findOrCreateContactByPhone, ensureConversation, storeMessage } = require('../_lib/contacts');
+import { findOrCreateContactByPhone, ensureConversation, storeMessage } from '../_lib/contacts.js';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method === 'GET') {
     const verifyToken = process.env.META_VERIFY_TOKEN;
     const mode = req.query['hub.mode'];

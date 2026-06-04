@@ -5,7 +5,6 @@ import StatsView from './StatsView';
 import KanbanView from './KanbanView';
 import { supabase } from '../lib/supabase';
 import '../App.css';
-import winowinLogo from '../assets/winowin-logo.svg';
 
 const normalizeWhatsappNumber = (rawValue) =>
   rawValue.replace(/[\s()-]/g, '');
@@ -553,7 +552,7 @@ function App() {
               </>
             ) : null}
           </div>
-          <img className="App-headerLogo" src={winowinLogo} alt="Logo de WinoWin" />
+          <img className="App-headerLogo" src="/winowin-logo.svg" alt="Logo de WinoWin" />
         </div>
       </header>
       {activeView === 'crm' ? (
