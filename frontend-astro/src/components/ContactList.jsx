@@ -12,8 +12,10 @@ const ContactList = ({
   const [name, setName] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [leadStatus, setLeadStatus] = useState('nuevo');
+  const [source, setSource] = useState('web');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('todos');
+  const [selectedSourceFilter, setSelectedSourceFilter] = useState('todos');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingContactId, setDeletingContactId] = useState(null);
   const [updatingStatusId, setUpdatingStatusId] = useState(null);
@@ -48,6 +50,13 @@ const ContactList = ({
     }
   );
 
+  const sourceFilters = [
+    { value: 'todos', label: 'Todos los orígenes', count: statusCounts.todos },
+    { value: 'web', label: 'Web', count: contacts.filter(c => (c.source || 'web') === 'web').length },
+    { value: 'instagram', label: 'Instagram', count: contacts.filter(c => c.source === 'instagram').length },
+    { value: 'recomendacion', label: 'Recomendación', count: contacts.filter(c => c.source === 'recomendacion').length },
+    { value: 'presencial', label: 'Presencial', count: contacts.filter(c => c.source === 'presencial').length },
+  ];
   const statusFilters = [
     { value: 'todos', label: 'Todos', count: statusCounts.todos },
     { value: 'nuevo', label: 'Nuevo', count: statusCounts.nuevo },
@@ -86,7 +95,10 @@ const ContactList = ({
     const matchesStatus =
       selectedStatusFilter === 'todos' || contactStatus === selectedStatusFilter;
 
-    return matchesSearch && matchesStatus;
+    const matchesSource =
+      selectedSourceFilter === 'todos' || (contact.source || 'web') === selectedSourceFilter;
+
+    return matchesSearch && matchesStatus && matchesSource;
   });
 
   const handleSubmit = async (e) => {
@@ -99,12 +111,14 @@ const ContactList = ({
         name: name.trim(),
         whatsappNumber: whatsappNumber.trim(),
         leadStatus,
+        source,
       });
 
       if (created) {
         setName('');
         setWhatsappNumber('');
         setLeadStatus('nuevo');
+        setSource('web');
         setSearchTerm('');
         setSelectedStatusFilter('todos');
         setIsCreateModalOpen(false);
@@ -180,6 +194,18 @@ const ContactList = ({
           </option>
         ))}
       </select>
+      <select
+        className="contact-source-select"
+        value={selectedSourceFilter}
+        onChange={(e) => setSelectedSourceFilter(e.target.value)}
+        aria-label="Filtrar contactos por origen"
+      >
+        {sourceFilters.map((filter) => (
+          <option key={filter.value} value={filter.value}>
+            {filter.label}
+          </option>
+        ))}
+      </select>
       {isCreateModalOpen ? (
         <div className="contact-modal-backdrop" onClick={() => setIsCreateModalOpen(false)}>
           <div className="contact-modal" onClick={(e) => e.stopPropagation()}>
@@ -212,6 +238,13 @@ const ContactList = ({
                 <option value="contactado">Contactado</option>
                 <option value="cualificado">Cualificado</option>
                 <option value="perdido">Perdido</option>
+              </select>
+              <select value={source} onChange={(e) => setSource(e.target.value)} className="contact-source-select">
+                <option value="web">Web</option>
+                <option value="instagram">Instagram</option>
+                <option value="recomendacion">Recomendación</option>
+                <option value="presencial">Presencial</option>
+                <option value="otro">Otro</option>
               </select>
               <div className="contact-modal-actions">
                 <button
@@ -251,7 +284,11 @@ const ContactList = ({
                         <div className="contact-info">
                           <div className="contact-name-line">
                             <span className="contact-card-name">{contact.name}</span>
-                            <span className="contact-phone">({contact.whatsapp_number})</span>
+                          </div>
+                          <div className="contact-source-row">
+                            <span className={`source-badge source-${contact.source || 'web'}`}>
+                              {contact.source === 'instagram' ? '📷' : contact.source === 'recomendacion' ? '💬' : contact.source === 'presencial' ? '📍' : contact.source === 'otro' ? '📌' : '🌐'} {(contact.source || 'web').charAt(0).toUpperCase() + (contact.source || 'web').slice(1)}
+                            </span>
                           </div>
                         </div>
                         <button

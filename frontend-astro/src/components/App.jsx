@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import ContactList from './components/ContactList';
-import ConversationView from './components/ConversationView';
-import StatsView from './components/StatsView';
-import { supabase } from './lib/supabase';
-import './App.css';
-import winowinLogo from './assets/winowin-logo.svg';
+import ContactList from './ContactList';
+import ConversationView from './ConversationView';
+import StatsView from './StatsView';
+import KanbanView from './KanbanView';
+import { supabase } from '../lib/supabase';
+import '../App.css';
 
 const normalizeWhatsappNumber = (rawValue) =>
   rawValue.replace(/[\s()-]/g, '');
@@ -27,6 +27,8 @@ function App() {
   const [actionError, setActionError] = useState('');
   const [actionInfo, setActionInfo] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [actividad, setActividad] = useState([]);
+  const [showTimeline, setShowTimeline] = useState(false);
 
   const selectedContact = contacts.find((contact) => contact.id === selectedContactId) || null;
 
@@ -59,6 +61,15 @@ function App() {
       return acc;
     },
     { total: 0, nuevo: 0, contactado: 0, cualificado: 0, perdido: 0 }
+  );
+
+  const sourceStats = recentContacts.reduce(
+    (acc, contact) => {
+      const src = contact.source || 'web';
+      acc[src] = (acc[src] || 0) + 1;
+      return acc;
+    },
+    {}
   );
 
   useEffect(() => {
@@ -132,6 +143,7 @@ function App() {
     setSelectedContactId(contactId);
     setActionError('');
     setActionInfo('');
+    setActiveView('crm');
 
     const contact = contacts.find((item) => item.id === contactId);
     if (!contact) {
@@ -141,6 +153,7 @@ function App() {
 
     try {
       await fetchConversation(contact.id);
+      await fetchActividad(contact.id);
     } catch (error) {
       setConversation(null);
       setMessages([]);
@@ -168,6 +181,7 @@ function App() {
       }
 
       await fetchConversation(selectedContactId);
+      await fetchActividad(selectedContactId);
     }
 
     setIsRefreshing(false);
@@ -254,6 +268,21 @@ function App() {
     setNewMessage('');
     setActionError('');
     setActionInfo('');
+    setActividad([]);
+    setShowTimeline(false);
+  };
+
+  const fetchActividad = async (contactId) => {
+    const { data, error } = await supabase
+      .from('actividad')
+      .select('*')
+      .eq('contacto_id', contactId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (!error) {
+      setActividad(data || []);
+    }
   };
 
   const fetchConversation = async (contactId) => {
@@ -342,7 +371,6 @@ function App() {
       }
 
       setNewMessage('');
-      setActionInfo('Mensaje enviado correctamente por Meta.');
       await fetchConversation(selectedContactId);
     } catch (error) {
       console.error('Error enviando mensaje desde frontend:', error);
@@ -394,18 +422,18 @@ function App() {
       return;
     }
 
-    setActionInfo('Mensaje entrante simulado correctamente.');
+    setActionInfo('');
     await fetchConversation(selectedContact.id);
   };
 
-  const handleCreateContact = async ({ name, whatsappNumber, leadStatus }) => {
+  const handleCreateContact = async ({ name, whatsappNumber, leadStatus, source }) => {
     setContactError('');
     setActionError('');
     setActionInfo('');
 
     const normalizedWhatsappNumber = normalizeWhatsappNumber(whatsappNumber);
     if (!isValidWhatsappNumber(normalizedWhatsappNumber)) {
-      setContactError('El número debe estar en formato internacional válido, por ejemplo +34604923459.');
+      setContactError('El número debe estar en formato internacional válido, por ejemplo +346****3459.');
       return false;
     }
 
@@ -416,6 +444,7 @@ function App() {
         name,
         whatsapp_number: normalizedWhatsappNumber,
         lead_status: leadStatus,
+        source: source || 'web',
         created_at: now,
         updated_at: now,
       })
@@ -487,6 +516,9 @@ function App() {
     setContactError('');
     setActionError('');
 
+    const contact = contacts.find((c) => c.id === contactId);
+    const oldStatus = contact ? contact.lead_status : null;
+
     const { error } = await supabase
       .from('contactos')
       .update({ lead_status: leadStatus })
@@ -498,12 +530,48 @@ function App() {
       return false;
     }
 
+    // Registrar actividad
+    const statusLabels = { nuevo: 'Nuevo', contactado: 'Contactado', cualificado: 'Cualificado', perdido: 'Perdido' };
+    await supabase.from('actividad').insert({
+      contacto_id: contactId,
+      tipo: 'cambio_estado',
+      descripcion: `${statusLabels[oldStatus] || 'Sin estado'} → ${statusLabels[leadStatus]}`,
+      metadata: { old: oldStatus, new: leadStatus },
+    });
+
     setContacts((currentContacts) =>
       currentContacts.map((contact) =>
-        contact.id === contactId ? { ...contact, lead_status: leadStatus } : contact
+        String(contact.id) === String(contactId) ? { ...contact, lead_status: leadStatus } : contact
       )
     );
     setActionInfo('Estado del contacto actualizado.');
+    return true;
+  };
+
+  const handleSaveNote = async (contactId, noteText) => {
+    const { error } = await supabase
+      .from('contactos')
+      .update({ notes: noteText || null })
+      .eq('id', contactId);
+
+    if (error) {
+      setActionError('No se pudo guardar la nota.');
+      return false;
+    }
+
+    // Registrar actividad
+    await supabase.from('actividad').insert({
+      contacto_id: contactId,
+      tipo: 'nota',
+      descripcion: noteText ? `Nota añadida` : `Nota eliminada`,
+      metadata: { snippet: (noteText || '').slice(0, 100) },
+    });
+
+    setContacts((currentContacts) =>
+      currentContacts.map((contact) =>
+        contact.id === contactId ? { ...contact, notes: noteText || null } : contact
+      )
+    );
     return true;
   };
 
@@ -514,16 +582,25 @@ function App() {
           <div className="App-headerTitleGroup">
             <h1>ChatPanel CRM</h1>
             {activeView === 'crm' ? (
-              <button
-                type="button"
-                className="header-nav-btn"
-                onClick={() => setActiveView('stats')}
-              >
-                Estadísticas
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="header-nav-btn"
+                  onClick={() => setActiveView('kanban')}
+                >
+                  Pipeline
+                </button>
+                <button
+                  type="button"
+                  className="header-nav-btn"
+                  onClick={() => setActiveView('stats')}
+                >
+                  Estadísticas
+                </button>
+              </>
             ) : null}
           </div>
-          <img className="App-headerLogo" src={winowinLogo} alt="Logo de WinoWin" />
+          <img className="App-headerLogo" src="/winowin-logo.svg" alt="Logo de WinoWin" />
         </div>
       </header>
       {activeView === 'crm' ? (
@@ -554,9 +631,12 @@ function App() {
               selectedContact={selectedContact}
               selectedContactId={selectedContactId}
               actionError={actionError}
-              actionInfo={actionInfo}
               isRefreshing={isRefreshing}
               isSending={isSending}
+              onSaveNote={handleSaveNote}
+              actividad={actividad}
+              showTimeline={showTimeline}
+              onToggleTimeline={() => setShowTimeline(!showTimeline)}
             />
           ) : (
             <div className="conversation-view conversation-empty">
@@ -564,9 +644,19 @@ function App() {
             </div>
           )}
         </div>
+      ) : activeView === 'stats' ? (
+        <div className="App-main App-main-stats">
+          <StatsView stats={stats} sourceStats={sourceStats} onBack={() => setActiveView('crm')} />
+        </div>
       ) : (
         <div className="App-main App-main-stats">
-          <StatsView stats={stats} onBack={() => setActiveView('crm')} />
+          <KanbanView
+            contacts={contacts}
+            onUpdateContactStatus={handleUpdateContactStatus}
+            onContactSelect={handleContactSelect}
+            onBack={() => setActiveView('crm')}
+            actionInfo={actionInfo}
+          />
         </div>
       )}
     </div>

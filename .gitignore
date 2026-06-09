@@ -10,6 +10,10 @@ backend/.venv_codex/
 frontend/node_modules/
 frontend/dist/
 
+# Frontend Astro
+frontend-astro/node_modules/
+frontend-astro/dist/
+
 # Local data
 database.db
 *.log
@@ -17,6 +21,7 @@ database.db
 # Environment files
 .env
 .env.*
+!.env.example
 
 # Local notes not meant for sharing
 HANDOFF_*.md
