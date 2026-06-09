@@ -1295,7 +1295,7 @@ button {
 
 @media (max-width: 760px) {
   .App-header {
-    padding: 10px 24px 8px;
+    padding: 8px 16px 6px;
   }
 
   .App-headerContent {
@@ -1304,30 +1304,70 @@ button {
 
   .App-headerTitleGroup {
     align-items: flex-start;
-    column-gap: 36px;
-    row-gap: 10px;
+    column-gap: 16px;
+    row-gap: 6px;
+  }
+
+  .App-header h1 {
+    font-size: 18px;
   }
 
   .App-headerLogo {
-    width: 64px;
+    width: 48px;
+  }
+
+  .header-nav-btn,
+  .stats-nav-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 8px;
   }
 
   .App-main {
     grid-template-columns: 1fr;
-    width: min(100%, calc(100% - 24px));
-    margin: 16px auto 24px;
+    width: min(100%, calc(100% - 16px));
+    margin: 12px auto 24px;
+    gap: 12px;
     flex: none;
     height: auto;
     max-height: none;
     min-height: 0;
   }
 
+  .App-main:not(.App-main-stats) {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
   .stats-view {
-    padding: 20px;
+    padding: 16px;
   }
 
   .stats-view-header {
     flex-direction: column;
+  }
+
+  .stats-view h2 {
+    font-size: 20px;
+  }
+
+  .stats-charts-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .stats-metrics-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .stats-metric-card {
+    padding: 10px 8px;
+  }
+
+  .stats-metric-value {
+    font-size: 22px;
   }
 
   .stats-summary-grid {
@@ -1336,15 +1376,15 @@ button {
   }
 
   .stats-card-total {
-    flex-basis: 168px;
-    min-width: 168px;
+    flex-basis: 140px;
+    min-width: 140px;
   }
 
   .stats-card {
-    flex-basis: 132px;
-    min-width: 132px;
-    min-height: 74px;
-    padding: 10px 12px;
+    flex-basis: 110px;
+    min-width: 110px;
+    min-height: 64px;
+    padding: 8px 10px;
   }
 
   .stats-card-label {
@@ -1352,7 +1392,7 @@ button {
   }
 
   .stats-card-value {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .stats-card-helper {
@@ -1362,22 +1402,84 @@ button {
   .contact-list,
   .conversation-view {
     height: auto;
-    min-height: 460px;
+    min-height: 340px;
+    max-height: none;
+  }
+
+  .contact-list {
+    padding: 10px;
+  }
+
+  .contact-list h2 {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  .contact-search-input,
+  .contact-status-select,
+  .contact-source-select {
+    padding: 8px 10px;
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+
+  .contact-source-select {
+    margin-top: 0;
   }
 
   .contacts-toolbar {
     align-items: stretch;
     flex-wrap: wrap;
+    margin-bottom: 8px;
+    gap: 6px;
   }
 
   .contacts-toolbar-btn,
   .contacts-toolbar-indicator {
     width: 100%;
     justify-content: center;
+    min-height: 32px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .contact-list li {
+    padding: 2px 6px !important;
+    min-height: 42px !important;
+    gap: 6px;
+  }
+
+  .contact-card {
+    padding: 2px 4px !important;
+    min-height: 42px !important;
+    gap: 6px;
+  }
+
+  .contact-card-name {
+    font-size: 14px;
+  }
+
+  .source-badge {
+    font-size: 10px;
+    padding: 1px 6px;
+  }
+
+  .contact-status-badge-select {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  .contact-header-name {
+    font-size: 16px;
+  }
+
+  .conversation-view {
+    padding: 14px;
   }
 
   .contact-modal {
-    padding: 18px;
+    padding: 16px;
+    width: min(100%, 340px);
   }
 
   .contact-modal-actions {
@@ -1386,17 +1488,34 @@ button {
 
   .contacts-list-scroll,
   .messages-list {
-    max-height: 240px;
+    max-height: 200px;
   }
 
   .conversation-header {
     flex-direction: column;
     align-items: stretch;
+    padding-right: 30px;
+    gap: 10px;
+    margin-bottom: 8px;
   }
 
   .conversation-actions {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .conversation-actions button {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+
+  .conversation-close-btn {
+    top: 8px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
   }
 
   .simulator-row {
@@ -1413,7 +1532,18 @@ button {
   }
 
   .delete-contact-btn {
-    width: 100%;
+    width: auto;
+    min-width: 28px;
+    height: 28px;
+  }
+
+  .trash-icon {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .timeline-panel {
+    width: 85vw;
   }
 }
 
