@@ -7,15 +7,16 @@ const STATUS_LABELS = {
   perdido: 'Perdido',
 };
 
-function StatsView({ stats, onBack }) {
-  const maxCount = Math.max(
-    stats.total,
-    stats.nuevo,
-    stats.contactado,
-    stats.cualificado,
-    stats.perdido,
-    1
-  );
+const SOURCE_CONFIG = {
+  web: { label: 'Web', icon: '🌐', color: '#0369a1', bg: '#e0f2fe' },
+  instagram: { label: 'Instagram', icon: '📷', color: '#be185d', bg: '#fce7f3' },
+  recomendacion: { label: 'Recomendación', icon: '💬', color: '#2e7d32', bg: '#e8f5e9' },
+  presencial: { label: 'Presencial', icon: '📍', color: '#e65100', bg: '#fff3e0' },
+  otro: { label: 'Otro', icon: '📌', color: '#7b1fa2', bg: '#f3e5f5' },
+};
+
+function StatsView({ stats, sourceStats, onBack }) {
+  const maxCount = Math.max(stats.total, 1);
 
   const bars = [
     { key: 'nuevo', label: STATUS_LABELS.nuevo, count: stats.nuevo, tone: 'nuevo' },
@@ -23,6 +24,21 @@ function StatsView({ stats, onBack }) {
     { key: 'cualificado', label: STATUS_LABELS.cualificado, count: stats.cualificado, tone: 'cualificado' },
     { key: 'perdido', label: STATUS_LABELS.perdido, count: stats.perdido, tone: 'perdido' },
   ];
+
+  // Conversion metrics
+  const conversionRate = stats.total > 0 ? Math.round((stats.cualificado / stats.total) * 100) : 0;
+  const lossRate = stats.total > 0 ? Math.round((stats.perdido / stats.total) * 100) : 0;
+  const engagementRate = stats.total > 0 ? Math.round(((stats.contactado + stats.cualificado) / stats.total) * 100) : 0;
+
+  const metricCards = [
+    { label: 'Tasa de conversión', value: `${conversionRate}%`, sub: 'Nuevo → Cualificado', color: '#15803d', bg: '#ecfdf3' },
+    { label: 'Tasa de contacto', value: `${engagementRate}%`, sub: 'Contactados o más', color: '#2563eb', bg: '#eff6ff' },
+    { label: 'Tasa de pérdida', value: `${lossRate}%`, sub: 'Leads perdidos', color: '#dc2626', bg: '#fef2f2' },
+  ];
+
+  // Source distribution
+  const sourceEntries = Object.entries(sourceStats || {}).sort((a, b) => b[1] - a[1]);
+  const maxSource = Math.max(...sourceEntries.map(([, c]) => c), 1);
 
   return (
     <section className="stats-view">
@@ -60,23 +76,68 @@ function StatsView({ stats, onBack }) {
         </article>
       </div>
 
-      <div className="stats-chart-card">
-        <h3>Gráfico por estado</h3>
-        <div className="stats-bars">
-          {bars.map((bar) => (
-            <div key={bar.key} className="stats-bar-row">
-              <div className="stats-bar-topline">
-                <span className={`stats-bar-label stats-bar-label-${bar.tone}`}>{bar.label}</span>
-                <strong className="stats-bar-count">{bar.count}</strong>
+      {/* Conversion metrics */}
+      <div className="stats-metrics-grid">
+        {metricCards.map((card) => (
+          <article key={card.label} className="stats-metric-card" style={{ background: card.bg }}>
+            <span className="stats-metric-label">{card.label}</span>
+            <strong className="stats-metric-value" style={{ color: card.color }}>{card.value}</strong>
+            <span className="stats-metric-sub">{card.sub}</span>
+          </article>
+        ))}
+      </div>
+
+      <div className="stats-charts-row">
+        <div className="stats-chart-card">
+          <h3>Gráfico por estado</h3>
+          <div className="stats-bars">
+            {bars.map((bar) => (
+              <div key={bar.key} className="stats-bar-row">
+                <div className="stats-bar-topline">
+                  <span className={`stats-bar-label stats-bar-label-${bar.tone}`}>{bar.label}</span>
+                  <strong className="stats-bar-count">{bar.count}</strong>
+                </div>
+                <div className="stats-bar-track">
+                  <div
+                    className={`stats-bar-fill stats-bar-fill-${bar.tone}`}
+                    style={{ width: `${(bar.count / maxCount) * 100}%` }}
+                  />
+                </div>
               </div>
-              <div className="stats-bar-track">
-                <div
-                  className={`stats-bar-fill stats-bar-fill-${bar.tone}`}
-                  style={{ width: `${(bar.count / maxCount) * 100}%` }}
-                />
-              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="stats-chart-card">
+          <h3>Origen de los leads</h3>
+          {sourceEntries.length === 0 ? (
+            <p className="stats-chart-empty">Sin datos de origen todavía.</p>
+          ) : (
+            <div className="stats-bars">
+              {sourceEntries.map(([src, count]) => {
+                const config = SOURCE_CONFIG[src] || SOURCE_CONFIG.web;
+                return (
+                  <div key={src} className="stats-bar-row">
+                    <div className="stats-bar-topline">
+                      <span className="stats-bar-label" style={{ color: config.color }}>
+                        {config.icon} {config.label}
+                      </span>
+                      <strong className="stats-bar-count">{count}</strong>
+                    </div>
+                    <div className="stats-bar-track">
+                      <div
+                        className="stats-bar-fill"
+                        style={{
+                          width: `${(count / maxSource) * 100}%`,
+                          background: config.color,
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          ))}
+          )}
         </div>
       </div>
     </section>

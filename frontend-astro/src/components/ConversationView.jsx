@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const ConversationView = ({
+const TIPO_CONFIG = {
+  cambio_estado: { icon: '🔄', label: 'Cambio de estado' },
+  nota: { icon: '📝', label: 'Nota' },
+  mensaje: { icon: '💬', label: 'Mensaje' },
+};
+
+function ConversationView({
   conversation,
   messages,
   newMessage,
@@ -18,7 +24,10 @@ const ConversationView = ({
   isRefreshing,
   isSending,
   onSaveNote,
-}) => {
+  actividad,
+  showTimeline,
+  onToggleTimeline,
+}) {
   const [localNote, setLocalNote] = useState('');
   const [noteSaved, setNoteSaved] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
@@ -58,8 +67,14 @@ const ConversationView = ({
 
   const hasNotes = (selectedContact?.notes || '').trim().length > 0;
 
+  const formatTime = (ts) => {
+    const d = new Date(ts);
+    return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) + ' · ' +
+           d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
-    <div className="conversation-view">
+    <div className={`conversation-view ${showTimeline ? 'has-timeline-open' : ''}`}>
       <button
         type="button"
         className="conversation-close-btn"
@@ -83,6 +98,17 @@ const ConversationView = ({
               <polyline points="23 4 23 10 17 10" />
               <polyline points="1 20 1 14 7 14" />
               <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className={`timeline-toggle-btn ${showTimeline ? 'active' : ''}`}
+            onClick={onToggleTimeline}
+            title="Historial"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
             </svg>
           </button>
           <button type="button" className="delete-chat-btn" onClick={onDeleteChat}>
@@ -139,44 +165,85 @@ const ConversationView = ({
           />
         </div>
       ) : null}
-      <div className="messages-container">
-        <div className="messages-list messages">
-          {messages.length === 0 ? (
-            <p className="empty-messages">Todavía no hay mensajes en esta conversación.</p>
-          ) : (
-            messages.map((msg) => (
-              <div key={msg.id} className={`msg ${msg.direction} msg-animated`}>
-                <div className="msg-content">{msg.content}</div>
-                <div className="msg-meta">
-                  {msg.direction === 'incoming' ? 'Entrante' : 'Saliente'} ·
-                  {new Date(msg.timestamp).toLocaleTimeString()} ·
-                  {getDeliveryLabel(msg) ? ` ${getDeliveryLabel(msg)} ·` : ''}
-                  {msg.is_read && msg.direction === 'incoming' && '(leído)'}
-                  {msg.delivery_status === 'error' ? (
-                    <span className="msg-error-dot" title="Error al enviar"> ⚠</span>
-                  ) : null}
+      <div className="conversation-body">
+        <div className="messages-container">
+          <div className="messages-list messages">
+            {messages.length === 0 ? (
+              <p className="empty-messages">Todavía no hay mensajes en esta conversación.</p>
+            ) : (
+              messages.map((msg) => (
+                <div key={msg.id} className={`msg ${msg.direction} msg-animated`}>
+                  <div className="msg-content">{msg.content}</div>
+                  <div className="msg-meta">
+                    {msg.direction === 'incoming' ? 'Entrante' : 'Saliente'} ·
+                    {new Date(msg.timestamp).toLocaleTimeString()} ·
+                    {getDeliveryLabel(msg) ? ` ${getDeliveryLabel(msg)} ·` : ''}
+                    {msg.is_read && msg.direction === 'incoming' && '(leído)'}
+                    {msg.delivery_status === 'error' ? (
+                      <span className="msg-error-dot" title="Error al enviar"> ⚠</span>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
         </div>
+        <form className="msg-form" onSubmit={onSendMessage}>
+          <input
+            type="text"
+            value={newMessage}
+            onChange={onMessageChange}
+            onKeyDown={handleMessageKeyDown}
+            placeholder="Escribe un mensaje..."
+            className="msg-input"
+            disabled={isSending}
+          />
+          <button type="submit" className="msg-btn" disabled={isSending}>
+            {isSending ? 'Enviando...' : 'Enviar'}
+          </button>
+        </form>
       </div>
-      <form className="msg-form" onSubmit={onSendMessage}>
-        <input
-          type="text"
-          value={newMessage}
-          onChange={onMessageChange}
-          onKeyDown={handleMessageKeyDown}
-          placeholder="Escribe un mensaje..."
-          className="msg-input"
-          disabled={isSending}
-        />
-        <button type="submit" className="msg-btn" disabled={isSending}>
-          {isSending ? 'Enviando...' : 'Enviar'}
-        </button>
-      </form>
+
+      {/* ── Timeline panel ── */}
+      {showTimeline && selectedContact ? (
+        <>
+          <div className="timeline-backdrop" onClick={onToggleTimeline} />
+          <aside className="timeline-panel">
+            <div className="timeline-header">
+              <h3>Historial de actividad</h3>
+              <button type="button" className="timeline-close-btn" onClick={onToggleTimeline} aria-label="Cerrar historial">
+                ×
+              </button>
+            </div>
+            <div className="timeline-body">
+              {actividad.length === 0 ? (
+                <p className="timeline-empty">Sin actividad registrada todavía. Los cambios de estado y notas aparecerán aquí.</p>
+              ) : (
+                <ul className="timeline-list">
+                  {actividad.map((act) => {
+                    const config = TIPO_CONFIG[act.tipo] || { icon: '📌', label: act.tipo };
+                    return (
+                      <li key={act.id} className="timeline-item">
+                        <div className="timeline-dot" />
+                        <div className="timeline-content">
+                          <div className="timeline-event-header">
+                            <span className="timeline-icon">{config.icon}</span>
+                            <span className="timeline-type">{config.label}</span>
+                          </div>
+                          <p className="timeline-desc">{act.descripcion}</p>
+                          <time className="timeline-time">{formatTime(act.created_at)}</time>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </aside>
+        </>
+      ) : null}
     </div>
   );
-};
+}
 
 export default ConversationView;

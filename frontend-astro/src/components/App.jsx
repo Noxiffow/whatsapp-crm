@@ -27,6 +27,8 @@ function App() {
   const [actionError, setActionError] = useState('');
   const [actionInfo, setActionInfo] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [actividad, setActividad] = useState([]);
+  const [showTimeline, setShowTimeline] = useState(false);
 
   const selectedContact = contacts.find((contact) => contact.id === selectedContactId) || null;
 
@@ -59,6 +61,15 @@ function App() {
       return acc;
     },
     { total: 0, nuevo: 0, contactado: 0, cualificado: 0, perdido: 0 }
+  );
+
+  const sourceStats = recentContacts.reduce(
+    (acc, contact) => {
+      const src = contact.source || 'web';
+      acc[src] = (acc[src] || 0) + 1;
+      return acc;
+    },
+    {}
   );
 
   useEffect(() => {
@@ -142,6 +153,7 @@ function App() {
 
     try {
       await fetchConversation(contact.id);
+      await fetchActividad(contact.id);
     } catch (error) {
       setConversation(null);
       setMessages([]);
@@ -169,6 +181,7 @@ function App() {
       }
 
       await fetchConversation(selectedContactId);
+      await fetchActividad(selectedContactId);
     }
 
     setIsRefreshing(false);
@@ -255,6 +268,21 @@ function App() {
     setNewMessage('');
     setActionError('');
     setActionInfo('');
+    setActividad([]);
+    setShowTimeline(false);
+  };
+
+  const fetchActividad = async (contactId) => {
+    const { data, error } = await supabase
+      .from('actividad')
+      .select('*')
+      .eq('contacto_id', contactId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (!error) {
+      setActividad(data || []);
+    }
   };
 
   const fetchConversation = async (contactId) => {
@@ -398,14 +426,14 @@ function App() {
     await fetchConversation(selectedContact.id);
   };
 
-  const handleCreateContact = async ({ name, whatsappNumber, leadStatus }) => {
+  const handleCreateContact = async ({ name, whatsappNumber, leadStatus, source }) => {
     setContactError('');
     setActionError('');
     setActionInfo('');
 
     const normalizedWhatsappNumber = normalizeWhatsappNumber(whatsappNumber);
     if (!isValidWhatsappNumber(normalizedWhatsappNumber)) {
-      setContactError('El número debe estar en formato internacional válido, por ejemplo +34604923459.');
+      setContactError('El número debe estar en formato internacional válido, por ejemplo +346****3459.');
       return false;
     }
 
@@ -416,6 +444,7 @@ function App() {
         name,
         whatsapp_number: normalizedWhatsappNumber,
         lead_status: leadStatus,
+        source: source || 'web',
         created_at: now,
         updated_at: now,
       })
@@ -487,6 +516,9 @@ function App() {
     setContactError('');
     setActionError('');
 
+    const contact = contacts.find((c) => c.id === contactId);
+    const oldStatus = contact ? contact.lead_status : null;
+
     const { error } = await supabase
       .from('contactos')
       .update({ lead_status: leadStatus })
@@ -497,6 +529,15 @@ function App() {
       setActionError('No se pudo actualizar el estado del contacto.');
       return false;
     }
+
+    // Registrar actividad
+    const statusLabels = { nuevo: 'Nuevo', contactado: 'Contactado', cualificado: 'Cualificado', perdido: 'Perdido' };
+    await supabase.from('actividad').insert({
+      contacto_id: contactId,
+      tipo: 'cambio_estado',
+      descripcion: `${statusLabels[oldStatus] || 'Sin estado'} → ${statusLabels[leadStatus]}`,
+      metadata: { old: oldStatus, new: leadStatus },
+    });
 
     setContacts((currentContacts) =>
       currentContacts.map((contact) =>
@@ -517,6 +558,14 @@ function App() {
       setActionError('No se pudo guardar la nota.');
       return false;
     }
+
+    // Registrar actividad
+    await supabase.from('actividad').insert({
+      contacto_id: contactId,
+      tipo: 'nota',
+      descripcion: noteText ? `Nota añadida` : `Nota eliminada`,
+      metadata: { snippet: (noteText || '').slice(0, 100) },
+    });
 
     setContacts((currentContacts) =>
       currentContacts.map((contact) =>
@@ -585,6 +634,9 @@ function App() {
               isRefreshing={isRefreshing}
               isSending={isSending}
               onSaveNote={handleSaveNote}
+              actividad={actividad}
+              showTimeline={showTimeline}
+              onToggleTimeline={() => setShowTimeline(!showTimeline)}
             />
           ) : (
             <div className="conversation-view conversation-empty">
@@ -594,7 +646,7 @@ function App() {
         </div>
       ) : activeView === 'stats' ? (
         <div className="App-main App-main-stats">
-          <StatsView stats={stats} onBack={() => setActiveView('crm')} />
+          <StatsView stats={stats} sourceStats={sourceStats} onBack={() => setActiveView('crm')} />
         </div>
       ) : (
         <div className="App-main App-main-stats">
