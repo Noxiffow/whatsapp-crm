@@ -284,7 +284,6 @@ const ContactList = ({
                         <div className="contact-info">
                           <div className="contact-name-line">
                             <span className="contact-card-name">{contact.name}</span>
-                            <span className="contact-phone">({contact.whatsapp_number})</span>
                           </div>
                           <div className="contact-source-row">
                             <span className={`source-badge source-${contact.source || 'web'}`}>

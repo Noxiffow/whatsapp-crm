@@ -85,12 +85,11 @@ function ConversationView({
       </button>
       <div className="conversation-header">
         <div>
-          <h2>Conversación</h2>
           {selectedContact ? (
-            <p className="selected-contact-name">
-              {selectedContact.name} · {selectedContact.whatsapp_number}
-            </p>
-          ) : null}
+            <h2 className="contact-header-name">{selectedContact.name} · {selectedContact.whatsapp_number}</h2>
+          ) : (
+            <h2>Conversación</h2>
+          )}
         </div>
         <div className="conversation-actions">
           <button type="button" className="refresh-btn" onClick={onRefresh} disabled={isRefreshing} title="Refrescar">
