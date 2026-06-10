@@ -3,6 +3,7 @@ import ContactList from './ContactList';
 import ConversationView from './ConversationView';
 import StatsView from './StatsView';
 import KanbanView from './KanbanView';
+import Login from './Login';
 import { supabase } from '../lib/supabase';
 import '../App.css';
 
@@ -29,6 +30,8 @@ function App() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [actividad, setActividad] = useState([]);
   const [showTimeline, setShowTimeline] = useState(false);
+  const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   const selectedContact = contacts.find((contact) => contact.id === selectedContactId) || null;
 
@@ -72,9 +75,23 @@ function App() {
     {}
   );
 
+  // ── Auth ──
   useEffect(() => {
-    fetchContacts();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (session) fetchContacts();
+  }, [session]);
 
   const fetchContacts = async () => {
     setActionError('');
@@ -575,6 +592,29 @@ function App() {
     return true;
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+    setContacts([]);
+    setSelectedContactId(null);
+    setConversation(null);
+    setMessages([]);
+  };
+
+  if (authLoading) {
+    return (
+      <div className="login-container">
+        <div className="login-card" style={{ textAlign: 'center', padding: '48px' }}>
+          <p style={{ color: '#6b7280', fontSize: '15px' }}>Cargando…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <Login onLogin={(s) => setSession(s)} />;
+  }
+
   return (
     <div className="App">
       <header className="App-header">
@@ -599,6 +639,14 @@ function App() {
                 </button>
               </>
             ) : null}
+            <button
+              type="button"
+              className="header-nav-btn"
+              onClick={handleLogout}
+              style={{ borderColor: 'rgba(255,255,255,0.45)', background: 'rgba(255,255,255,0.10)' }}
+            >
+              Salir
+            </button>
           </div>
           <img className="App-headerLogo" src="/winowin-logo.svg" alt="Logo de WinoWin" />
         </div>
